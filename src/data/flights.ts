@@ -4,6 +4,8 @@ export interface FlightOption {
   flightNumber: string;
   departureTime: string;
   arrivalTime: string;
+  returnDepartureTime: string;
+  returnArrivalTime: string;
   stops: number;
   duration: string;
   pricePerPerson: number;
@@ -66,23 +68,29 @@ function getBasePrice(city: string): number {
   return 279; // default
 }
 
-const DEPARTURE_TIMES = ["5:45 AM", "7:20 AM", "9:15 AM", "11:00 AM", "1:30 PM", "3:45 PM", "6:00 PM"];
-const ARRIVAL_TIMES  = ["8:30 AM", "10:05 AM", "11:45 AM", "1:20 PM", "4:00 PM", "6:15 PM", "9:00 PM"];
-const DURATIONS      = ["1h 55m", "2h 10m", "2h 25m", "1h 45m", "3h 10m", "2h 50m", "2h 05m"];
+// Outbound: fly TO SLC (typically morning/midday)
+const DEPARTURE_TIMES = ["5:45 AM", "7:20 AM", "9:15 AM", "11:00 AM", "1:30 PM", "6:40 AM", "8:05 AM"];
+const ARRIVAL_TIMES   = ["8:30 AM", "10:05 AM", "11:45 AM", "1:20 PM",  "4:00 PM", "9:25 AM", "10:50 AM"];
+
+// Return: fly FROM SLC (typically afternoon/evening on last ski day)
+const RETURN_DEPARTURE_TIMES = ["11:30 AM", "1:15 PM", "3:40 PM", "5:55 PM", "7:25 PM", "2:10 PM", "4:50 PM"];
+const RETURN_ARRIVAL_TIMES   = ["2:05 PM",  "4:00 PM", "6:15 PM", "8:30 PM", "10:10 PM","5:00 PM", "7:45 PM"];
+
+const DURATIONS = ["1h 55m", "2h 10m", "2h 25m", "1h 45m", "3h 10m", "2h 50m", "2h 05m"];
+
+// Realistic individual price multipliers — simulates mix of deals, mid, and premium fares
+const PRICE_MULTIPLIERS = [1.00, 0.85, 1.18, 0.92, 1.08, 0.76, 1.24, 0.95, 1.13];
 
 export function generateFlights(city: string, groupSize: number): FlightOption[] {
   const base = getBasePrice(city);
+
+  const allAirlines = [...AIRLINES].sort(() => 0.5 - (Math.sin(city.length * 7 + 1) + 1) / 2);
+
   const options: FlightOption[] = [];
-
-  // 3 flights per package = 9 total across all packages; generate 9 unique ones
-  const usedAirlines = new Set<string>();
-  const allAirlines = [...AIRLINES].sort(() => Math.random() - 0.5);
-
   for (let i = 0; i < 9; i++) {
     const airline = allAirlines[i % allAirlines.length];
     const timeIdx = i % DEPARTURE_TIMES.length;
-    const multiplier = i < 3 ? 1.0 : i < 6 ? 0.88 : 1.12;
-    const price = Math.round((base * multiplier) / 10) * 10;
+    const price = Math.round((base * PRICE_MULTIPLIERS[i]) / 5) * 5; // round to nearest $5
 
     options.push({
       id: `flight-${i}`,
@@ -90,6 +98,8 @@ export function generateFlights(city: string, groupSize: number): FlightOption[]
       flightNumber: `${airline.code}${1200 + i * 47}`,
       departureTime: DEPARTURE_TIMES[timeIdx],
       arrivalTime: ARRIVAL_TIMES[timeIdx],
+      returnDepartureTime: RETURN_DEPARTURE_TIMES[timeIdx],
+      returnArrivalTime: RETURN_ARRIVAL_TIMES[timeIdx],
       stops: i % 4 === 0 ? 1 : 0,
       duration: i % 4 === 0 ? DURATIONS[timeIdx].replace(/(\d+)h/, (_, h) => `${+h + 1}h`) : DURATIONS[timeIdx],
       pricePerPerson: price,

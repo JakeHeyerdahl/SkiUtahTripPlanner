@@ -2,26 +2,31 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import {
+  Wine, Utensils, Flame, GlassWater, Coffee, Zap, Mountain,
+  Leaf, Waves, Globe, Sun, UtensilsCrossed, Star, ChevronLeft,
+  type LucideIcon,
+} from "lucide-react";
 import { useTripContext, DiningStyle, CuisinePreference } from "@/context/TripContext";
 import { cn } from "@/lib/utils";
 
-const DINING_STYLES: { value: DiningStyle; label: string; icon: string; desc: string }[] = [
-  { value: "fine-dining",       label: "Fine Dining",       icon: "🥂", desc: "White tablecloth après-ski" },
-  { value: "casual",            label: "Casual",            icon: "🍔", desc: "Good food, no fuss" },
-  { value: "apres-ski",         label: "Après-Ski Bars",    icon: "🍺", desc: "Cold beer, warm fire" },
-  { value: "brewery",           label: "Local Breweries",   icon: "🍻", desc: "Utah craft beer scene" },
-  { value: "breakfast-focused", label: "Breakfast Person",  icon: "🥞", desc: "Fuel up before first chair" },
-  { value: "quick-eats",        label: "On-Mountain Eats",  icon: "🌯", desc: "Quick fuel between runs" },
+const DINING_STYLES: { value: DiningStyle; label: string; Icon: LucideIcon; desc: string }[] = [
+  { value: "fine-dining",       label: "Fine Dining",      Icon: Wine,         desc: "White tablecloth après-ski" },
+  { value: "casual",            label: "Casual",           Icon: Utensils,     desc: "Good food, no fuss" },
+  { value: "apres-ski",         label: "Après-Ski Bars",   Icon: Flame,        desc: "Cold beer, warm fire" },
+  { value: "brewery",           label: "Local Breweries",  Icon: GlassWater,   desc: "Utah craft beer scene" },
+  { value: "breakfast-focused", label: "Breakfast Person", Icon: Coffee,       desc: "Fuel up before first chair" },
+  { value: "quick-eats",        label: "On-Mountain Eats", Icon: Zap,          desc: "Quick fuel between runs" },
 ];
 
-const CUISINES: { value: CuisinePreference; label: string; icon: string }[] = [
-  { value: "american",    label: "American",    icon: "🥩" },
-  { value: "italian",     label: "Italian",     icon: "🍝" },
-  { value: "mexican",     label: "Mexican",     icon: "🌮" },
-  { value: "asian",       label: "Asian",       icon: "🍜" },
-  { value: "seafood",     label: "Seafood",     icon: "🦞" },
-  { value: "vegetarian",  label: "Vegetarian",  icon: "🥗" },
-  { value: "anything",    label: "Anything!",   icon: "🍽️" },
+const CUISINES: { value: CuisinePreference; label: string; Icon: LucideIcon }[] = [
+  { value: "american",   label: "American",   Icon: UtensilsCrossed },
+  { value: "italian",    label: "Italian",    Icon: Wine             },
+  { value: "mexican",    label: "Mexican",    Icon: Sun              },
+  { value: "asian",      label: "Asian",      Icon: Globe            },
+  { value: "seafood",    label: "Seafood",    Icon: Waves            },
+  { value: "vegetarian", label: "Vegetarian", Icon: Leaf             },
+  { value: "anything",   label: "Anything!",  Icon: Star             },
 ];
 
 export default function FoodStep() {
@@ -48,10 +53,6 @@ export default function FoodStep() {
 
   const canContinue =
     tripData.diningStyles.length > 0 || tripData.cuisinePreferences.length > 0;
-
-  function handleBuildPackages() {
-    router.push("/plan/building");
-  }
 
   return (
     <motion.div
@@ -92,7 +93,11 @@ export default function FoodStep() {
                       : "border-gray-100 bg-[#F4F6F8] hover:border-gray-200"
                   )}
                 >
-                  <span className="text-2xl">{ds.icon}</span>
+                  <ds.Icon
+                    size={20}
+                    strokeWidth={1.75}
+                    className={isSelected ? "text-[#1B6BB0]" : "text-[#8A9BB0]"}
+                  />
                   <div>
                     <p className={cn("text-sm font-bold", isSelected ? "text-[#0D2240]" : "text-[#3D5066]")}>
                       {ds.label}
@@ -130,13 +135,13 @@ export default function FoodStep() {
                   transition={{ delay: 0.25 + i * 0.04 }}
                   onClick={() => toggleCuisine(c.value)}
                   className={cn(
-                    "flex items-center gap-2 px-4 py-2.5 rounded-full border-2 font-semibold text-sm transition-all",
+                    "flex items-center gap-1.5 px-4 py-2.5 rounded-full border-2 font-semibold text-sm transition-all",
                     isSelected
                       ? "border-[#1B6BB0] bg-[#1B6BB0] text-white shadow-md"
                       : "border-gray-100 bg-[#F4F6F8] text-[#3D5066] hover:border-gray-200"
                   )}
                 >
-                  <span>{c.icon}</span>
+                  <c.Icon size={13} strokeWidth={2} />
                   {c.label}
                 </motion.button>
               );
@@ -144,18 +149,22 @@ export default function FoodStep() {
           </div>
         </motion.div>
 
-        {/* CTA */}
+        {/* Nav */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
           className="flex gap-3"
         >
-          <button onClick={goBack} className="px-6 py-4 rounded-2xl font-semibold text-[#3D5066] bg-[#F4F6F8] hover:bg-gray-200 transition-colors">
-            ← Back
+          <button
+            onClick={goBack}
+            className="flex items-center gap-1.5 px-6 py-4 rounded-2xl font-semibold text-[#3D5066] bg-[#F4F6F8] hover:bg-gray-200 transition-colors"
+          >
+            <ChevronLeft size={16} strokeWidth={2.5} />
+            Back
           </button>
           <motion.button
-            onClick={handleBuildPackages}
+            onClick={() => router.push("/plan/building")}
             disabled={!canContinue}
             whileHover={canContinue ? { scale: 1.02 } : {}}
             whileTap={canContinue ? { scale: 0.98 } : {}}
@@ -166,7 +175,7 @@ export default function FoodStep() {
                 : "bg-gray-100 text-gray-300 cursor-not-allowed"
             )}
           >
-            <span>🏔️</span>
+            <Mountain size={18} strokeWidth={2} />
             Build My Packages
           </motion.button>
         </motion.div>

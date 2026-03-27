@@ -31,10 +31,12 @@ export default function WizardShell() {
         </svg>
       </div>
 
-      {/* Step content */}
-      <AnimatePresence mode="wait">
-        <StepComponent key={currentStep} />
-      </AnimatePresence>
+      {/* Step content — pb-44 ensures the fixed progress bar never covers the nav buttons */}
+      <div className="pb-44">
+        <AnimatePresence mode="wait">
+          <StepComponent key={currentStep} />
+        </AnimatePresence>
+      </div>
 
       {/* Progress bar */}
       <WizardProgressBar />

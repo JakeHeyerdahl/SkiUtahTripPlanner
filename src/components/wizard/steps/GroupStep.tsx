@@ -1,18 +1,25 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useTripContext, GroupMember, SkillLevel } from "@/context/TripContext";
+import { Backpack, ShoppingBag, ChevronLeft, ArrowRight, Package, MountainSnow, Snowflake, Coffee } from "lucide-react";
+import { useTripContext, GroupMember, SkillLevel, ActivityMode } from "@/context/TripContext";
 import { cn } from "@/lib/utils";
 
 const SKILL_LEVELS: { value: SkillLevel; label: string; color: string; dot: string }[] = [
-  { value: "beginner",     label: "Beginner",     color: "bg-green-50 border-green-400 text-green-800",   dot: "bg-green-500" },
-  { value: "intermediate", label: "Intermediate", color: "bg-blue-50 border-blue-400 text-blue-800",      dot: "bg-blue-600" },
-  { value: "advanced",     label: "Advanced",     color: "bg-slate-50 border-slate-500 text-slate-800",   dot: "bg-slate-700" },
-  { value: "expert",       label: "Expert",       color: "bg-purple-50 border-purple-500 text-purple-900",dot: "bg-purple-700" },
+  { value: "beginner",     label: "Beginner",     color: "bg-green-50 border-green-400 text-green-800",    dot: "bg-green-500"  },
+  { value: "intermediate", label: "Intermediate", color: "bg-blue-50 border-blue-400 text-blue-800",       dot: "bg-blue-600"   },
+  { value: "advanced",     label: "Advanced",     color: "bg-slate-50 border-slate-500 text-slate-800",    dot: "bg-slate-700"  },
+  { value: "expert",       label: "Expert",       color: "bg-purple-50 border-purple-500 text-purple-900", dot: "bg-purple-700" },
+];
+
+const ACTIVITIES: { value: ActivityMode; label: string; icon: React.ElementType }[] = [
+  { value: "skiing",       label: "Skiing",       icon: MountainSnow },
+  { value: "snowboarding", label: "Snowboarding", icon: Snowflake  },
+  { value: "chilling",     label: "Just Chillin", icon: Coffee     },
 ];
 
 function newMember(id: string): GroupMember {
-  return { id, skillLevel: "intermediate", isSkiing: true, needsRental: false };
+  return { id, skillLevel: "intermediate", activity: "skiing", needsRental: false };
 }
 
 export default function GroupStep() {
@@ -22,20 +29,16 @@ export default function GroupStep() {
   function setCount(n: number) {
     if (n < 1 || n > 12) return;
     const current = members.slice(0, n);
-    while (current.length < n) {
-      current.push(newMember(String(Date.now() + current.length)));
-    }
+    while (current.length < n) current.push(newMember(String(Date.now() + current.length)));
     updateTrip({ groupMembers: current });
   }
 
   function updateMember(id: string, updates: Partial<GroupMember>) {
-    updateTrip({
-      groupMembers: members.map((m) => (m.id === id ? { ...m, ...updates } : m)),
-    });
+    updateTrip({ groupMembers: members.map((m) => (m.id === id ? { ...m, ...updates } : m)) });
   }
 
-  const skiingCount = members.filter((m) => m.isSkiing).length;
-  const rentalCount = members.filter((m) => m.needsRental).length;
+  const onSnowCount = members.filter((m) => m.activity !== "chilling").length;
+  const rentalCount = members.filter((m) => m.needsRental && m.activity !== "chilling").length;
 
   return (
     <motion.div
@@ -52,11 +55,11 @@ export default function GroupStep() {
             Who&apos;s making<br />the trip?
           </h1>
           <p className="text-[#8A9BB0] text-base mb-8">
-            Tell us about everyone in your group so we can find the perfect resort match.
+            Tell us about everyone so we can find the perfect resort match.
           </p>
         </motion.div>
 
-        {/* Group size counter */}
+        {/* Group size */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -65,23 +68,21 @@ export default function GroupStep() {
         >
           <div>
             <p className="font-bold text-[#0D2240] text-lg">Group Size</p>
-            <p className="text-[#8A9BB0] text-sm">{skiingCount} skiing · {members.length - skiingCount} not skiing</p>
+            <p className="text-[#8A9BB0] text-sm">
+              {onSnowCount} on snow · {members.length - onSnowCount} just chillin
+            </p>
           </div>
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setCount(members.length - 1)}
-              className="w-10 h-10 rounded-full bg-white shadow-sm text-[#0D2240] font-bold text-xl flex items-center justify-center hover:shadow-md transition-shadow"
-            >−</button>
+            <button onClick={() => setCount(members.length - 1)}
+              className="w-10 h-10 rounded-full bg-white shadow-sm text-[#0D2240] font-bold text-xl flex items-center justify-center hover:shadow-md transition-shadow">−</button>
             <span className="text-3xl font-black text-[#0D2240] w-8 text-center">{members.length}</span>
-            <button
-              onClick={() => setCount(members.length + 1)}
-              className="w-10 h-10 rounded-full bg-[#0D2240] text-white font-bold text-xl flex items-center justify-center hover:bg-[#1B6BB0] transition-colors"
-            >+</button>
+            <button onClick={() => setCount(members.length + 1)}
+              className="w-10 h-10 rounded-full bg-[#0D2240] text-white font-bold text-xl flex items-center justify-center hover:bg-[#1B6BB0] transition-colors">+</button>
           </div>
         </motion.div>
 
         {/* Member cards */}
-        <div className="space-y-3 mb-6 max-h-[40vh] overflow-y-auto pr-1">
+        <div className="space-y-3 mb-6 max-h-[45vh] overflow-y-auto pr-1">
           <AnimatePresence>
             {members.map((member, i) => (
               <motion.div
@@ -92,101 +93,108 @@ export default function GroupStep() {
                 transition={{ duration: 0.25, delay: i * 0.04 }}
                 className="bg-[#F4F6F8] rounded-2xl p-4"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-bold text-[#0D2240] text-sm">
-                    Person {i + 1}
-                  </span>
-                  {/* Skiing toggle */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#8A9BB0]">Not skiing</span>
+                <p className="font-bold text-[#0D2240] text-sm mb-3">Person {i + 1}</p>
+
+                {/* Activity — 3-option segmented control */}
+                <div className="flex rounded-xl border-2 border-gray-100 overflow-hidden bg-white mb-3">
+                  {ACTIVITIES.map(({ value, label, icon: Icon }) => (
                     <button
-                      onClick={() => updateMember(member.id, { isSkiing: !member.isSkiing })}
+                      key={value}
+                      onClick={() => updateMember(member.id, {
+                        activity: value,
+                        needsRental: value === "chilling" ? false : member.needsRental,
+                      })}
                       className={cn(
-                        "relative w-10 h-5 rounded-full transition-colors",
-                        member.isSkiing ? "bg-[#1B6BB0]" : "bg-gray-200"
+                        "flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-semibold transition-all",
+                        member.activity === value
+                          ? value === "chilling"
+                            ? "bg-[#8A9BB0] text-white"
+                            : "bg-[#0D2240] text-white"
+                          : "text-[#8A9BB0] hover:text-[#3D5066]"
                       )}
                     >
-                      <motion.div
-                        className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm"
-                        animate={{ x: member.isSkiing ? 21 : 2 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                      />
+                      <Icon size={13} strokeWidth={2} />
+                      {label}
                     </button>
-                    <span className="text-xs text-[#8A9BB0]">Skiing</span>
-                  </div>
+                  ))}
                 </div>
 
-                {member.isSkiing && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                  >
-                    {/* Skill level */}
-                    <div className="flex gap-1.5 flex-wrap mb-3">
-                      {SKILL_LEVELS.map((sl) => (
+                {/* Skill level + gear — only for on-snow members */}
+                <AnimatePresence>
+                  {member.activity !== "chilling" && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {/* Skill level */}
+                      <div className="flex gap-1.5 flex-wrap mb-3">
+                        {SKILL_LEVELS.map((sl) => (
+                          <button
+                            key={sl.value}
+                            onClick={() => updateMember(member.id, { skillLevel: sl.value })}
+                            className={cn(
+                              "flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 text-xs font-semibold transition-all",
+                              member.skillLevel === sl.value ? sl.color : "bg-white border-gray-100 text-gray-400"
+                            )}
+                          >
+                            <span className={cn("w-2 h-2 rounded-full", member.skillLevel === sl.value ? sl.dot : "bg-gray-200")} />
+                            {sl.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Gear — either/or segmented control */}
+                      <div className="flex rounded-xl border-2 border-gray-100 overflow-hidden bg-white">
                         <button
-                          key={sl.value}
-                          onClick={() => updateMember(member.id, { skillLevel: sl.value })}
+                          onClick={() => updateMember(member.id, { needsRental: false })}
                           className={cn(
-                            "flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 text-xs font-semibold transition-all",
-                            member.skillLevel === sl.value ? sl.color : "bg-white border-gray-100 text-gray-400"
+                            "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold transition-all",
+                            !member.needsRental ? "bg-[#0D2240] text-white" : "text-[#8A9BB0] hover:text-[#3D5066]"
                           )}
                         >
-                          <span className={cn("w-2 h-2 rounded-full", member.skillLevel === sl.value ? sl.dot : "bg-gray-200")} />
-                          {sl.label}
+                          <Backpack size={13} strokeWidth={2} />
+                          Own gear
                         </button>
-                      ))}
-                    </div>
-
-                    {/* Rental toggle */}
-                    <button
-                      onClick={() => updateMember(member.id, { needsRental: !member.needsRental })}
-                      className={cn(
-                        "flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-xs font-semibold transition-all",
-                        member.needsRental
-                          ? "border-[#5BB8F5] bg-[#5BB8F5]/10 text-[#0D2240]"
-                          : "border-gray-100 bg-white text-gray-400"
-                      )}
-                    >
-                      <span>🎿</span>
-                      {member.needsRental ? "Needs equipment rental" : "Bringing own gear"}
-                    </button>
-                  </motion.div>
-                )}
+                        <button
+                          onClick={() => updateMember(member.id, { needsRental: true })}
+                          className={cn(
+                            "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold transition-all",
+                            member.needsRental ? "bg-[#1B6BB0] text-white" : "text-[#8A9BB0] hover:text-[#3D5066]"
+                          )}
+                        >
+                          <ShoppingBag size={13} strokeWidth={2} />
+                          Needs rental
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             ))}
           </AnimatePresence>
         </div>
 
-        {/* Summary chips */}
+        {/* Rental chip */}
         {rentalCount > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex gap-2 flex-wrap mb-5"
-          >
-            <span className="px-3 py-1.5 rounded-full bg-[#5BB8F5]/10 text-[#0D2240] text-xs font-semibold border border-[#5BB8F5]/30">
-              🎿 {rentalCount} rental{rentalCount !== 1 ? "s" : ""} needed
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-2 flex-wrap mb-5">
+            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#5BB8F5]/10 text-[#0D2240] text-xs font-semibold border border-[#5BB8F5]/30">
+              <Package size={12} strokeWidth={2} className="text-[#1B6BB0]" />
+              {rentalCount} rental{rentalCount !== 1 ? "s" : ""} needed
             </span>
           </motion.div>
         )}
 
         {/* Nav */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="flex gap-3"
-        >
-          <button onClick={goBack} className="px-6 py-4 rounded-2xl font-semibold text-[#3D5066] bg-[#F4F6F8] hover:bg-gray-200 transition-colors">
-            ← Back
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="flex gap-3">
+          <button onClick={goBack} className="flex items-center gap-1.5 px-6 py-4 rounded-2xl font-semibold text-[#3D5066] bg-[#F4F6F8] hover:bg-gray-200 transition-colors">
+            <ChevronLeft size={16} strokeWidth={2.5} />
+            Back
           </button>
-          <button
-            onClick={goNext}
-            className="flex-1 py-4 rounded-2xl font-bold text-lg bg-[#0D2240] text-white hover:bg-[#1B6BB0] shadow-lg active:scale-[0.98] transition-all"
-          >
-            Choose your pass →
+          <button onClick={goNext} className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-lg bg-[#0D2240] text-white hover:bg-[#1B6BB0] shadow-lg active:scale-[0.98] transition-all">
+            Choose your pass
+            <ArrowRight size={18} strokeWidth={2.5} />
           </button>
         </motion.div>
       </div>

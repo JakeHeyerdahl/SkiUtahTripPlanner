@@ -7,10 +7,12 @@ export type SkillLevel = "beginner" | "intermediate" | "advanced" | "expert";
 export type DiningStyle = "fine-dining" | "casual" | "apres-ski" | "brewery" | "breakfast-focused" | "quick-eats";
 export type CuisinePreference = "american" | "italian" | "mexican" | "asian" | "seafood" | "vegetarian" | "anything";
 
+export type ActivityMode = "skiing" | "snowboarding" | "chilling";
+
 export interface GroupMember {
   id: string;
   skillLevel: SkillLevel;
-  isSkiing: boolean;
+  activity: ActivityMode;
   needsRental: boolean;
 }
 
@@ -23,6 +25,7 @@ export interface SelectedPackage {
 export interface TripData {
   // Step 1
   dates: Date[];
+  tripDays: number;
   isAnytime: boolean;
   departureCity: string;
   // Step 2
@@ -51,12 +54,13 @@ interface TripContextValue {
 
 const defaultTripData: TripData = {
   dates: [],
+  tripDays: 0,
   isAnytime: false,
   departureCity: "",
   budgetMin: 2000,
   budgetMax: 8000,
   groupMembers: [
-    { id: "1", skillLevel: "intermediate", isSkiing: true, needsRental: false },
+    { id: "1", skillLevel: "intermediate", activity: "skiing", needsRental: false },
   ],
   passType: null,
   diningStyles: [],

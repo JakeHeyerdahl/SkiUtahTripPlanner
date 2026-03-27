@@ -10,6 +10,7 @@ export interface TripPackage {
   tagline: string;
   marketingPoint: string;
   resort: Resort;
+  eligibleResorts: Resort[];
   snowLikelihood: { score: number; typicalInches: number };
   hotelOptions: Lodging[];
   flightOptions: FlightOption[];
@@ -19,14 +20,19 @@ export interface TripPackage {
   nights: number;
 }
 
-// Which resorts are accessible per pass
+// Which resorts are accessible per pass (2025-26 season, verified)
+// Ikon Full:  Alta/Snowbird (7 combined), Brighton (7 days), Deer Valley (7 days), Solitude (unlimited), Snowbasin (unlimited)
+// Ikon Base:  Brighton (5 days), Snowbird (5 days), Solitude (unlimited w/ blackouts) — NO Alta, NO Deer Valley, NO Snowbasin
+// Epic/Local: Park City Mountain only
+// Mtn Collective: Alta (2 days), Snowbird (2 days), Snowbasin (2 days), Powder Mountain (2 days)
+// Indy:       Beaver Mountain (2 days), Eagle Point (2 days) — Brighton & Sundance are NOT on Indy 25-26
 const PASS_RESORTS: Record<string, string[]> = {
-  "ikon":               ["alta", "brighton", "snowbird", "solitude", "deer-valley", "snowbasin", "powder-mountain"],
-  "ikon-base":          ["alta", "brighton", "snowbird", "solitude", "snowbasin", "powder-mountain"],
-  "epic":               ["park-city", "woodward-park-city"],
-  "epic-local":         ["park-city", "woodward-park-city"],
-  "mountain-collective":["alta", "snowbird", "snowbasin"],
-  "indy":               ["brighton", "sundance", "nordic-valley", "cherry-peak"],
+  "ikon":                ["alta", "brighton", "snowbird", "solitude", "deer-valley", "snowbasin"],
+  "ikon-base":           ["brighton", "snowbird", "solitude"],
+  "epic":                ["park-city", "woodward-park-city"],
+  "epic-local":          ["park-city", "woodward-park-city"],
+  "mountain-collective": ["alta", "snowbird", "snowbasin", "powder-mountain"],
+  "indy":                ["beaver-mountain"],
 };
 
 // Region groupings for smart lodging
@@ -55,13 +61,17 @@ function getLodgingForResort(resortId: string, budget: number, nights: number): 
     .slice(0, 3);
 }
 
+function isOnSnow(member: { activity?: string; needsRental: boolean }) {
+  return member.activity === "skiing" || member.activity === "snowboarding";
+}
+
 export function generateTripPackages(trip: TripData): TripPackage[] {
   if (!trip.passType) return [];
 
   const eligible = getEligibleResorts(trip.passType);
   if (eligible.length === 0) return [];
 
-  const nights = Math.max(trip.dates.length > 0 ? trip.dates.length - 1 : 4, 2);
+  const nights = Math.max(trip.tripDays > 0 ? trip.tripDays - 1 : trip.dates.length > 0 ? trip.dates.length - 1 : 4, 2);
   const allFlights = generateFlights(trip.departureCity, trip.groupMembers.length);
 
   // Sort by snow likelihood to get "best" resort first
@@ -85,6 +95,7 @@ export function generateTripPackages(trip: TripData): TripPackage[] {
     tagline: "Top-rated resort. Prime conditions.",
     marketingPoint: `Highest snow probability + ${p1Resort.annualSnowfall}" average annual snowfall`,
     resort: p1Resort,
+    eligibleResorts: eligible,
     snowLikelihood: getSnowLikelihood(p1Resort.id, trip.dates),
     hotelOptions: p1Hotels.length >= 3 ? p1Hotels : [...p1Hotels, ...lodgingOptions.slice(0, 3 - p1Hotels.length)],
     flightOptions: allFlights.slice(0, 3),
@@ -105,6 +116,7 @@ export function generateTripPackages(trip: TripData): TripPackage[] {
     tagline: "Maximum fun, smart on budget.",
     marketingPoint: `Save up to ${Math.round(((trip.budgetMax - trip.budgetMin) / trip.budgetMax) * 100)}% vs. Best Overall while keeping epic terrain`,
     resort: p2Resort,
+    eligibleResorts: eligible,
     snowLikelihood: getSnowLikelihood(p2Resort.id, trip.dates),
     hotelOptions: p2Hotels.length >= 3 ? p2Hotels : [...p2Hotels, ...lodgingOptions.slice(0, 3 - p2Hotels.length)],
     flightOptions: allFlights.slice(3, 6),
@@ -127,6 +139,7 @@ export function generateTripPackages(trip: TripData): TripPackage[] {
     tagline: "Steep. Deep. Unforgettable.",
     marketingPoint: `${adventureResort.terrain.black}% black diamond terrain — ${adventureResort.verticalDrop.toLocaleString()} ft of vertical`,
     resort: adventureResort,
+    eligibleResorts: eligible,
     snowLikelihood: getSnowLikelihood(adventureResort.id, trip.dates),
     hotelOptions: p3Hotels.length >= 3 ? p3Hotels : [...p3Hotels, ...lodgingOptions.slice(0, 3 - p3Hotels.length)],
     flightOptions: allFlights.slice(6, 9),

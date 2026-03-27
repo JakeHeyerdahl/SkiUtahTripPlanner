@@ -2,17 +2,19 @@
 
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
+import { Wallet, Mountain, Star, ChevronLeft, ArrowRight } from "lucide-react";
 import { useTripContext } from "@/context/TripContext";
 import { formatCurrency } from "@/lib/utils";
+import type { LucideIcon } from "lucide-react";
 
 const MIN = 1000;
 const MAX = 25000;
 const STEP = 500;
 
-const BUDGET_TIERS = [
-  { label: "Budget", range: [1000, 4000], desc: "Great slopes, smart choices", icon: "🎿" },
-  { label: "Moderate", range: [4000, 10000], desc: "Comfort + the full experience", icon: "🏔️" },
-  { label: "Luxury", range: [10000, 25000], desc: "Ski-in/ski-out, world-class dining", icon: "⭐" },
+const BUDGET_TIERS: { label: string; range: [number, number]; desc: string; Icon: LucideIcon }[] = [
+  { label: "Budget",   range: [1000, 4000],   desc: "Great slopes, smart choices",       Icon: Wallet   },
+  { label: "Moderate", range: [4000, 10000],  desc: "Comfort + the full experience",      Icon: Mountain },
+  { label: "Luxury",   range: [10000, 25000], desc: "Ski-in/ski-out, world-class dining", Icon: Star     },
 ];
 
 function pct(val: number) {
@@ -26,13 +28,14 @@ export default function BudgetStep() {
   const budgetMin = tripData.budgetMin;
   const budgetMax = tripData.budgetMax;
 
-  const setMin = useCallback((v: number) => {
-    updateTrip({ budgetMin: Math.min(v, budgetMax - STEP) });
-  }, [budgetMax, updateTrip]);
-
-  const setMax = useCallback((v: number) => {
-    updateTrip({ budgetMax: Math.max(v, budgetMin + STEP) });
-  }, [budgetMin, updateTrip]);
+  const setMin = useCallback(
+    (v: number) => { updateTrip({ budgetMin: Math.min(v, budgetMax - STEP) }); },
+    [budgetMax, updateTrip]
+  );
+  const setMax = useCallback(
+    (v: number) => { updateTrip({ budgetMax: Math.max(v, budgetMin + STEP) }); },
+    [budgetMin, updateTrip]
+  );
 
   const activeTier = BUDGET_TIERS.find(
     (t) => budgetMin >= t.range[0] && budgetMax <= t.range[1]
@@ -83,7 +86,6 @@ export default function BudgetStep() {
           className="relative mb-8 px-2"
         >
           <div className="relative h-2 bg-gray-100 rounded-full">
-            {/* Filled range */}
             <div
               className="absolute h-full rounded-full"
               style={{
@@ -93,35 +95,23 @@ export default function BudgetStep() {
               }}
             />
           </div>
-
-          {/* Min thumb */}
           <input
-            type="range"
-            min={MIN} max={MAX} step={STEP}
-            value={budgetMin}
+            type="range" min={MIN} max={MAX} step={STEP} value={budgetMin}
             onChange={(e) => setMin(Number(e.target.value))}
             onMouseDown={() => setIsDragging("min")}
             onMouseUp={() => setIsDragging(null)}
             className="absolute top-0 left-0 w-full h-2 opacity-0 cursor-pointer"
             style={{ zIndex: isDragging === "min" ? 5 : 3 }}
           />
-          {/* Max thumb */}
           <input
-            type="range"
-            min={MIN} max={MAX} step={STEP}
-            value={budgetMax}
+            type="range" min={MIN} max={MAX} step={STEP} value={budgetMax}
             onChange={(e) => setMax(Number(e.target.value))}
             onMouseDown={() => setIsDragging("max")}
             onMouseUp={() => setIsDragging(null)}
             className="absolute top-0 left-0 w-full h-2 opacity-0 cursor-pointer"
             style={{ zIndex: isDragging === "max" ? 5 : 3 }}
           />
-
-          {/* Thumb indicators */}
-          {[
-            { val: budgetMin, label: formatCurrency(budgetMin) },
-            { val: budgetMax, label: formatCurrency(budgetMax) },
-          ].map(({ val, label }, i) => (
+          {[budgetMin, budgetMax].map((val, i) => (
             <div
               key={i}
               className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 pointer-events-none"
@@ -144,16 +134,18 @@ export default function BudgetStep() {
             return (
               <button
                 key={tier.label}
-                onClick={() => {
-                  updateTrip({ budgetMin: tier.range[0], budgetMax: tier.range[1] });
-                }}
+                onClick={() => updateTrip({ budgetMin: tier.range[0], budgetMax: tier.range[1] })}
                 className={`p-4 rounded-2xl border-2 text-left transition-all ${
                   isActive
                     ? "border-[#1B6BB0] bg-[#1B6BB0]/5"
                     : "border-gray-100 bg-[#F4F6F8] hover:border-gray-200"
                 }`}
               >
-                <div className="text-xl mb-1">{tier.icon}</div>
+                <tier.Icon
+                  size={18}
+                  strokeWidth={1.75}
+                  className={`mb-2 ${isActive ? "text-[#1B6BB0]" : "text-[#8A9BB0]"}`}
+                />
                 <div className={`text-sm font-bold ${isActive ? "text-[#0D2240]" : "text-[#3D5066]"}`}>
                   {tier.label}
                 </div>
@@ -163,7 +155,7 @@ export default function BudgetStep() {
           })}
         </motion.div>
 
-        {/* Nav buttons */}
+        {/* Nav */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -172,15 +164,17 @@ export default function BudgetStep() {
         >
           <button
             onClick={goBack}
-            className="px-6 py-4 rounded-2xl font-semibold text-[#3D5066] bg-[#F4F6F8] hover:bg-gray-200 transition-colors"
+            className="flex items-center gap-1.5 px-6 py-4 rounded-2xl font-semibold text-[#3D5066] bg-[#F4F6F8] hover:bg-gray-200 transition-colors"
           >
-            ← Back
+            <ChevronLeft size={16} strokeWidth={2.5} />
+            Back
           </button>
           <button
             onClick={goNext}
-            className="flex-1 py-4 rounded-2xl font-bold text-lg bg-[#0D2240] text-white hover:bg-[#1B6BB0] shadow-lg shadow-navy/20 active:scale-[0.98] transition-all"
+            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-lg bg-[#0D2240] text-white hover:bg-[#1B6BB0] shadow-lg active:scale-[0.98] transition-all"
           >
-            Tell us about your group →
+            Tell us about your group
+            <ArrowRight size={18} strokeWidth={2.5} />
           </button>
         </motion.div>
       </div>

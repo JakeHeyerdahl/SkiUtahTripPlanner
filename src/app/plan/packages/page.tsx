@@ -122,46 +122,59 @@ function FlightRow({ flight, selected, onClick }: { flight: FlightOption; select
     <button
       onClick={onClick}
       className={cn(
-        "w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border transition-all duration-200 text-left",
+        "w-full flex items-start gap-3 px-4 py-3.5 rounded-xl border transition-all duration-200 text-left",
         selected
           ? "border-[#222222] bg-[#FAFAFA] shadow-[0_0_0_1px_#222222]"
           : "border-[#DDDDDD] bg-white hover:border-[#AAAAAA] hover:shadow-sm"
       )}
     >
       <div
-        className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center"
+        className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center mt-0.5"
         style={{ backgroundColor: flight.logoColor + "18" }}
       >
         <Plane size={14} style={{ color: flight.logoColor }} strokeWidth={2} />
       </div>
 
-      <div className="w-36 flex-shrink-0 min-w-0">
+      <div className="w-28 flex-shrink-0 min-w-0">
         <p className="text-sm font-semibold text-[#222222] leading-tight truncate">{flight.airline}</p>
         <p className="text-xs text-[#717171]">{flight.flightNumber}</p>
       </div>
 
-      <div className="flex items-center gap-2 flex-1 min-w-0">
-        <span className="text-sm font-semibold text-[#222222] whitespace-nowrap">{flight.departureTime}</span>
-        <div className="flex items-center gap-1 flex-1 min-w-0">
-          <div className="h-px flex-1 bg-[#DDDDDD]" />
-          <span className="text-[10px] text-[#717171] whitespace-nowrap px-1">{flight.duration}</span>
-          <div className="h-px flex-1 bg-[#DDDDDD]" />
+      {/* Outbound + Return leg */}
+      <div className="flex-1 min-w-0 space-y-1.5">
+        {/* Outbound */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] font-bold text-[#008A05] w-16 flex-shrink-0">Outbound</span>
+          <span className="text-xs font-semibold text-[#222222] whitespace-nowrap">{flight.departureTime}</span>
+          <div className="flex items-center gap-0.5 flex-1 min-w-0">
+            <div className="h-px flex-1 bg-[#DDDDDD]" />
+            <span className="text-[9px] text-[#717171] px-0.5 whitespace-nowrap">{flight.duration}</span>
+            <div className="h-px flex-1 bg-[#DDDDDD]" />
+          </div>
+          <span className="text-xs font-semibold text-[#222222] whitespace-nowrap">{flight.arrivalTime} SLC</span>
         </div>
-        <span className="text-sm font-semibold text-[#222222] whitespace-nowrap">{flight.arrivalTime} SLC</span>
+        {/* Return */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] font-bold text-[#717171] w-16 flex-shrink-0">Return</span>
+          <span className="text-xs font-semibold text-[#717171] whitespace-nowrap">{flight.returnDepartureTime} SLC</span>
+          <div className="flex items-center gap-0.5 flex-1 min-w-0">
+            <div className="h-px flex-1 bg-[#EBEBEB]" />
+            <span className="text-[9px] text-[#AAAAAA] px-0.5 whitespace-nowrap">{flight.duration}</span>
+            <div className="h-px flex-1 bg-[#EBEBEB]" />
+          </div>
+          <span className="text-xs font-semibold text-[#717171] whitespace-nowrap">{flight.returnArrivalTime}</span>
+        </div>
       </div>
 
-      <div className="w-16 text-center flex-shrink-0">
-        <span className={cn("text-xs font-medium whitespace-nowrap", flight.stops === 0 ? "text-[#008A05]" : "text-[#717171]")}>
+      <div className="flex flex-col items-end gap-1 flex-shrink-0">
+        <span className={cn("text-[10px] font-medium whitespace-nowrap", flight.stops === 0 ? "text-[#008A05]" : "text-[#717171]")}>
           {flight.stops === 0 ? "Nonstop" : "1 stop"}
         </span>
-      </div>
-
-      <div className="text-right flex-shrink-0 w-20">
         <p className="text-sm font-bold text-[#222222]">{formatCurrency(flight.pricePerPerson)}</p>
         <p className="text-[10px] text-[#717171]">per person</p>
       </div>
 
-      <div className={cn("w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all",
+      <div className={cn("w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all mt-0.5",
         selected ? "bg-[#222222]" : "border border-[#DDDDDD]"
       )}>
         {selected && <Check size={10} strokeWidth={3} color="white" />}
@@ -183,6 +196,7 @@ function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string })
 // ─── Package Card ─────────────────────────────────────────────────────────────
 function PackageCard({ pkg, groupSize, index }: { pkg: TripPackage; groupSize: number; index: number }) {
   const router = useRouter();
+  const { updateTrip } = useTripContext();
   const [selectedHotelId, setSelectedHotelId] = useState(pkg.hotelOptions[0]?.id ?? "");
   const [selectedFlightId, setSelectedFlightId] = useState(pkg.flightOptions[0]?.id ?? "");
 
@@ -219,6 +233,42 @@ function PackageCard({ pkg, groupSize, index }: { pkg: TripPackage; groupSize: n
           </div>
           {/* Snow badge — flex-shrink-0 prevents wrap */}
           <SnowBadge score={pkg.snowLikelihood.score} inches={pkg.snowLikelihood.typicalInches} />
+        </div>
+      </div>
+
+      {/* ── Eligible resorts strip ── */}
+      <div className="px-6 py-4 border-b border-[#EBEBEB]">
+        <p className="text-[10px] font-semibold text-[#717171] uppercase tracking-widest mb-3">
+          All resorts on your pass ({pkg.eligibleResorts.length})
+        </p>
+        <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
+          {pkg.eligibleResorts.map((r) => {
+            const isPrimary = r.id === pkg.resort.id;
+            return (
+              <div key={r.id} className="flex-shrink-0 flex flex-col items-center gap-1.5">
+                <div className={cn(
+                  "relative w-16 h-12 rounded-xl overflow-hidden border-2 transition-all",
+                  isPrimary ? "border-[#222222]" : "border-transparent"
+                )}>
+                  <Image
+                    src={getResortImage(r.id)}
+                    alt={r.name}
+                    fill
+                    className="object-cover"
+                    sizes="64px"
+                  />
+                  {isPrimary && (
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                      <Star size={10} className="fill-white text-white" />
+                    </div>
+                  )}
+                </div>
+                <p className="text-[9px] font-semibold text-[#717171] text-center leading-tight max-w-[60px]">
+                  {r.name.replace(" Ski Area", "").replace(" Mountain", "").replace(" Resort", "")}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -338,7 +388,10 @@ function PackageCard({ pkg, groupSize, index }: { pkg: TripPackage; groupSize: n
           </div>
 
           <button
-            onClick={() => router.push("/itinerary")}
+            onClick={() => {
+              updateTrip({ selectedPackage: { packageId: pkg.id, hotelId: selectedHotelId, flightId: selectedFlightId } });
+              router.push("/itinerary");
+            }}
             className="flex items-center gap-2 bg-[#0D2240] hover:bg-[#1B6BB0] text-white font-semibold text-sm px-6 py-4 rounded-xl transition-colors duration-200 whitespace-nowrap active:scale-[0.98] flex-shrink-0"
           >
             Build itinerary from this package
@@ -350,18 +403,19 @@ function PackageCard({ pkg, groupSize, index }: { pkg: TripPackage; groupSize: n
   );
 }
 
-// ─── Demo data fallback ───────────────────────────────────────────────────────
+// ─── Demo data fallback (only used when accessed directly without wizard) ─────
 const DEMO_TRIP = {
-  dates: [new Date(2026, 0, 15)],
+  dates: Array.from({ length: 5 }, (_, i) => { const d = new Date(2026, 0, 15); d.setDate(d.getDate() + i); return d; }),
+  tripDays: 5,
   isAnytime: false,
   departureCity: "Los Angeles",
   budgetMin: 3000,
   budgetMax: 8000,
   groupMembers: [
-    { id: "1", skillLevel: "intermediate" as const, isSkiing: true, needsRental: false },
-    { id: "2", skillLevel: "beginner" as const, isSkiing: true, needsRental: true },
-    { id: "3", skillLevel: "advanced" as const, isSkiing: true, needsRental: false },
-    { id: "4", skillLevel: "beginner" as const, isSkiing: false, needsRental: false },
+    { id: "1", skillLevel: "intermediate" as const, activity: "skiing" as const, needsRental: false },
+    { id: "2", skillLevel: "beginner" as const, activity: "skiing" as const, needsRental: true },
+    { id: "3", skillLevel: "advanced" as const, activity: "skiing" as const, needsRental: false },
+    { id: "4", skillLevel: "beginner" as const, activity: "chilling" as const, needsRental: false },
   ],
   passType: "ikon" as const,
   diningStyles: ["casual" as const, "apres-ski" as const],
@@ -420,10 +474,7 @@ function PackagesContent() {
   );
 }
 
+// TripProvider is inherited from /plan/layout.tsx — do NOT wrap again here
 export default function PackagesPage() {
-  return (
-    <TripProvider>
-      <PackagesContent />
-    </TripProvider>
-  );
+  return <PackagesContent />;
 }

@@ -1,25 +1,26 @@
-// Curated Unsplash photo IDs for each resort and hotel
-// Format: https://images.unsplash.com/photo-{id}?auto=format&fit=crop&w=1200&q=80
+// Official Ski Utah CDN images — sourced from skiutah.com/resorts/
+// All images are real resort photography, verified as serving valid JPEGs
 
 export const RESORT_IMAGES: Record<string, string> = {
   "alta":
-    "https://images.unsplash.com/photo-1605540436563-5bca919ae766?auto=format&fit=crop&w=1200&q=80",
+    "https://www.skiutah.com/files/subblob/service/images.listing/1072139158",
   "snowbird":
-    "https://images.unsplash.com/photo-1551524559-8af4e6624178?auto=format&fit=crop&w=1200&q=80",
+    "https://www.skiutah.com/files/subblob/service/images.listing/1072139134",
   "brighton":
-    "https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?auto=format&fit=crop&w=1200&q=80",
+    "https://www.skiutah.com/files/subblob/service/images.listing/1072141064",
   "solitude":
-    "https://images.unsplash.com/photo-1481349518771-20055b2a7b24?auto=format&fit=crop&w=1200&q=80",
+    "https://www.skiutah.com/files/subblob/service/images.listing/1072139200",
   "deer-valley":
-    "https://images.unsplash.com/photo-1612178537253-bccd437b730e?auto=format&fit=crop&w=1200&q=80",
+    "https://www.skiutah.com/files/subblob/service/images.listing/1072139403",
   "park-city":
-    "https://images.unsplash.com/photo-1510133768164-a3f037b3e78e?auto=format&fit=crop&w=1200&q=80",
+    "https://www.skiutah.com/files/subblob/service/images.listing/1072140938",
   "woodward-park-city":
-    "https://images.unsplash.com/photo-1542272201718-2af47e9c4879?auto=format&fit=crop&w=1200&q=80",
+    "https://www.skiutah.com/files/subblob/service/images.listing/1072140938",
   "powder-mountain":
-    "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1200&q=80",
+    "https://www.skiutah.com/files/subblob/service/images.listing/1072140050",
   "snowbasin":
-    "https://images.unsplash.com/photo-1541233349642-90e4aa9009e5?auto=format&fit=crop&w=1200&q=80",
+    "https://www.skiutah.com/files/subblob/service/images.listing/1072140134",
+  // Remaining resorts fall back to Unsplash ski scenes
   "nordic-valley":
     "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1200&q=80",
   "sundance":

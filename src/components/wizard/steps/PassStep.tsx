@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { Calendar, ChevronLeft, ArrowRight } from "lucide-react";
 import { useTripContext, PassType } from "@/context/TripContext";
 import { cn } from "@/lib/utils";
 
@@ -21,73 +22,73 @@ const PASSES: PassOption[] = [
   {
     value: "ikon",
     name: "Ikon Pass",
-    tagline: "Unlimited access, no blackouts",
+    tagline: "Unlimited Solitude & Snowbasin, 7 days at Alta, Brighton, Deer Valley & Snowbird",
     catchphrase: "More Mountain. More Adventure.",
-    utahResorts: ["Alta", "Brighton", "Snowbird", "Solitude", "Deer Valley (7 days)", "Snowbasin", "Powder Mountain"],
-    color: "#C4262E",
-    bgColor: "bg-red-50",
-    borderColor: "border-red-400",
-    blackoutNote: "No blackouts at most Utah resorts",
+    utahResorts: ["Solitude (unlimited)", "Snowbasin (unlimited)", "Alta (7 days)", "Brighton (7 days)", "Deer Valley (7 days)", "Alta + Snowbird (7 shared days)"],
+    color: "#B8860B",
+    bgColor: "bg-amber-50",
+    borderColor: "border-amber-400",
+    blackoutNote: "No blackouts at Utah resorts",
     logo: "IKON",
   },
   {
     value: "ikon-base",
     name: "Ikon Base Pass",
-    tagline: "Big savings with some holiday restrictions",
+    tagline: "5 days each at Brighton & Snowbird, unlimited Solitude",
     catchphrase: "Your Season. Your Mountain.",
-    utahResorts: ["Alta", "Brighton", "Snowbird", "Solitude", "Snowbasin", "Powder Mountain"],
-    color: "#C4262E",
-    bgColor: "bg-red-50",
-    borderColor: "border-red-300",
-    blackoutNote: "Blackouts: Dec 26–Jan 3, MLK & Presidents' weekends",
+    utahResorts: ["Solitude (unlimited, blackouts apply)", "Brighton (5 days)", "Snowbird (5 days)"],
+    color: "#B8860B",
+    bgColor: "bg-amber-50",
+    borderColor: "border-amber-300",
+    blackoutNote: "Blackouts: Dec 26–Jan 3, MLK & Presidents' weekends. Note: No Alta or Deer Valley access.",
     logo: "IKON BASE",
   },
   {
     value: "epic",
     name: "Epic Pass",
-    tagline: "Unlimited at Park City Mountain",
+    tagline: "Unlimited days at Park City Mountain — no blackouts",
     catchphrase: "Go Epic.",
-    utahResorts: ["Park City Mountain", "Woodward Park City"],
-    color: "#0057A8",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-400",
+    utahResorts: ["Park City Mountain (unlimited)", "Woodward Park City (unlimited)"],
+    color: "#E05A00",
+    bgColor: "bg-orange-50",
+    borderColor: "border-orange-400",
     blackoutNote: "No blackouts",
     logo: "EPIC",
   },
   {
     value: "epic-local",
     name: "Epic Local Pass",
-    tagline: "Park City with some peak restrictions",
+    tagline: "Park City unlimited with peak-date restrictions",
     catchphrase: "Go Local.",
-    utahResorts: ["Park City Mountain", "Woodward Park City"],
-    color: "#0057A8",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-300",
-    blackoutNote: "Blackouts: Dec 25–Jan 1, MLK & Presidents' weekends",
+    utahResorts: ["Park City Mountain (unlimited, blackouts apply)", "Woodward Park City (unlimited, blackouts apply)"],
+    color: "#E05A00",
+    bgColor: "bg-orange-50",
+    borderColor: "border-orange-300",
+    blackoutNote: "Blackouts: Dec 27–31, Jan 17–18, Feb 14–16, 2026",
     logo: "EPIC LOCAL",
   },
   {
     value: "mountain-collective",
     name: "Mountain Collective",
-    tagline: "2 days each at the best independent mountains",
+    tagline: "2 days each at 4 Utah resorts, no blackouts",
     catchphrase: "Independent by Nature.",
-    utahResorts: ["Alta (2 days)", "Snowbird (2 days)", "Snowbasin (2 days)"],
+    utahResorts: ["Alta (2 days)", "Snowbird (2 days)", "Snowbasin (2 days)", "Powder Mountain (2 days)"],
     color: "#1A5C3A",
     bgColor: "bg-green-50",
     borderColor: "border-green-400",
-    blackoutNote: "Blackouts: Dec 26–Jan 1",
+    blackoutNote: "No blackout dates",
     logo: "MTN COLLECTIVE",
   },
   {
     value: "indy",
     name: "Indy Pass",
-    tagline: "Support independent resorts",
+    tagline: "2 days each at independent Utah mountains",
     catchphrase: "Ski Independent.",
-    utahResorts: ["Brighton (2 days)", "Sundance (2 days)", "Nordic Valley (2 days)", "Cherry Peak (2 days)"],
+    utahResorts: ["Beaver Mountain (2 days)", "Eagle Point (2 days)"],
     color: "#6B2FA0",
     bgColor: "bg-purple-50",
     borderColor: "border-purple-400",
-    blackoutNote: "Blackouts: Dec 26–Jan 2",
+    blackoutNote: "Blackouts on peak dates (Indy+ Pass eliminates blackouts)",
     logo: "INDY",
   },
 ];
@@ -202,7 +203,7 @@ export default function PassStep() {
               </div>
               {/* Blackout note */}
               <div className="flex items-start gap-2 bg-white/60 rounded-xl p-2.5">
-                <span className="text-sm">📅</span>
+                <Calendar size={14} strokeWidth={2} className="text-[#3D5066] flex-shrink-0 mt-0.5" />
                 <p className="text-[11px] text-[#3D5066]">
                   <strong>Blackout dates:</strong> {selectedPass.blackoutNote}
                 </p>
@@ -218,20 +219,25 @@ export default function PassStep() {
           transition={{ delay: 0.4 }}
           className="flex gap-3"
         >
-          <button onClick={goBack} className="px-6 py-4 rounded-2xl font-semibold text-[#3D5066] bg-[#F4F6F8] hover:bg-gray-200 transition-colors">
-            ← Back
+          <button
+            onClick={goBack}
+            className="flex items-center gap-1.5 px-6 py-4 rounded-2xl font-semibold text-[#3D5066] bg-[#F4F6F8] hover:bg-gray-200 transition-colors"
+          >
+            <ChevronLeft size={16} strokeWidth={2.5} />
+            Back
           </button>
           <button
             onClick={goNext}
             disabled={!selected}
             className={cn(
-              "flex-1 py-4 rounded-2xl font-bold text-lg transition-all",
+              "flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-lg transition-all",
               selected
                 ? "bg-[#0D2240] text-white hover:bg-[#1B6BB0] shadow-lg active:scale-[0.98]"
                 : "bg-gray-100 text-gray-300 cursor-not-allowed"
             )}
           >
-            Almost there →
+            Almost there
+            <ArrowRight size={18} strokeWidth={2.5} />
           </button>
         </motion.div>
       </div>
