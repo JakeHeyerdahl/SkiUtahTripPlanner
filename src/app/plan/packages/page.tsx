@@ -5,9 +5,9 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
-  MapPin, Mountain, Snowflake, Wind, Layers,
+  MapPin, Snowflake, Wind, Layers,
   Plane, Hotel, Star, Check, ChevronRight,
-  Clock, ArrowRight, Users, Ticket,
+  Clock, ArrowRight, Users, Ticket, MessageCircle,
 } from "lucide-react";
 import { TripProvider, useTripContext } from "@/context/TripContext";
 import { generateTripPackages, calcPackageTotal, TripPackage } from "@/lib/generatePackages";
@@ -17,6 +17,7 @@ import { getResortImage, getHotelImage } from "@/data/images";
 import { formatCurrency, cn } from "@/lib/utils";
 import PassLogo from "@/components/ui/PassLogo";
 import { PassType } from "@/context/TripContext";
+import ConciergePanel, { ConciergeAction } from "@/components/concierge/ConciergePanel";
 
 // ─── Snow Badge ───────────────────────────────────────────────────────────────
 function SnowBadge({ score, inches }: { score: number; inches: number }) {
@@ -194,11 +195,24 @@ function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string })
 }
 
 // ─── Package Card ─────────────────────────────────────────────────────────────
-function PackageCard({ pkg, groupSize, index }: { pkg: TripPackage; groupSize: number; index: number }) {
+interface PackageCardProps {
+  pkg: TripPackage;
+  groupSize: number;
+  index: number;
+  externalHotelId?: string;
+  externalFlightId?: string;
+  onSelectionsChange?: (hotelId: string, flightId: string) => void;
+}
+
+function PackageCard({ pkg, groupSize, index, externalHotelId, externalFlightId, onSelectionsChange }: PackageCardProps) {
   const router = useRouter();
   const { updateTrip } = useTripContext();
-  const [selectedHotelId, setSelectedHotelId] = useState(pkg.hotelOptions[0]?.id ?? "");
-  const [selectedFlightId, setSelectedFlightId] = useState(pkg.flightOptions[0]?.id ?? "");
+  const [selectedHotelId, setSelectedHotelId] = useState(externalHotelId ?? pkg.hotelOptions[0]?.id ?? "");
+  const [selectedFlightId, setSelectedFlightId] = useState(externalFlightId ?? pkg.flightOptions[0]?.id ?? "");
+
+  // Sync external changes (from concierge actions)
+  if (externalHotelId && externalHotelId !== selectedHotelId) setSelectedHotelId(externalHotelId);
+  if (externalFlightId && externalFlightId !== selectedFlightId) setSelectedFlightId(externalFlightId);
 
   const liveTotal = calcPackageTotal(
     { ...pkg, selectedHotelId, selectedFlightId },
@@ -430,6 +444,52 @@ function PackagesContent() {
   const packages = generateTripPackages(data);
   const groupSize = data.groupMembers.length;
 
+  const [conciergeOpen, setConciergeOpen] = useState(false);
+  const [appliedActions, setAppliedActions] = useState<Set<string>>(new Set());
+  // Per-package overrides from concierge: { [pkgId]: { hotelId?, flightId? } }
+  const [pkgOverrides, setPkgOverrides] = useState<Record<string, { hotelId?: string; flightId?: string }>>({});
+
+  // Build context strings for the concierge
+  const tripContext = [
+    `Pass type: ${data.passType ?? "unknown"}`,
+    `Departure city: ${data.departureCity || "not specified"}`,
+    `Group: ${groupSize} people`,
+    `Budget: $${data.budgetMin.toLocaleString()}–$${data.budgetMax.toLocaleString()}`,
+    `Skill levels: ${[...new Set(data.groupMembers.map((m) => m.skillLevel))].join(", ")}`,
+    `Nights: ${packages[0]?.nights ?? 4}`,
+  ].join("\n");
+
+  const packagesContext = packages.map((pkg) => {
+    const hotel = pkg.hotelOptions.find((h) => h.id === pkg.selectedHotelId) ?? pkg.hotelOptions[0];
+    const flight = pkg.flightOptions.find((f) => f.id === pkg.selectedFlightId) ?? pkg.flightOptions[0];
+    return [
+      `Package: ${pkg.label} (id: ${pkg.id})`,
+      `  Primary resort: ${pkg.resort.name}`,
+      `  Hotels available: ${pkg.hotelOptions.map((h) => `${h.name} (id: ${h.id}, $${h.pricePerNight}/night)`).join("; ")}`,
+      `  Flights available: ${pkg.flightOptions.map((f) => `${f.airline} ${f.flightNumber} (id: ${f.id}, $${f.pricePerPerson}/pp, ${f.stops === 0 ? "nonstop" : "1 stop"})`).join("; ")}`,
+      `  Currently selected: ${hotel?.name}, ${flight?.airline} ${flight?.flightNumber}`,
+    ].join("\n");
+  }).join("\n\n");
+
+  function handleAction(action: ConciergeAction) {
+    setAppliedActions((prev) => new Set([...prev, action.id]));
+
+    if (action.tool === "recommend_hotel") {
+      const { packageId, hotelId } = action.input as { packageId: string; hotelId: string };
+      setPkgOverrides((prev) => ({
+        ...prev,
+        [packageId]: { ...prev[packageId], hotelId },
+      }));
+    } else if (action.tool === "recommend_flight") {
+      const { packageId, flightId } = action.input as { packageId: string; flightId: string };
+      setPkgOverrides((prev) => ({
+        ...prev,
+        [packageId]: { ...prev[packageId], flightId },
+      }));
+    }
+    // highlight_package — no state change needed, just mark applied
+  }
+
   return (
     <div className="min-h-screen bg-[#F7F7F7]">
       <div className="bg-white border-b border-[#EBEBEB]">
@@ -449,27 +509,41 @@ function PackagesContent() {
 
       <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
         {packages.map((pkg, i) => (
-          <PackageCard key={pkg.id} pkg={pkg} groupSize={groupSize} index={i} />
+          <PackageCard
+            key={pkg.id}
+            pkg={pkg}
+            groupSize={groupSize}
+            index={i}
+            externalHotelId={pkgOverrides[pkg.id]?.hotelId}
+            externalFlightId={pkgOverrides[pkg.id]?.flightId}
+          />
         ))}
       </div>
 
-      {/* Floating concierge */}
-      <div className="fixed bottom-6 right-6 z-50">
+      {/* Floating concierge button */}
+      <div className="fixed bottom-6 right-6 z-40">
         <motion.button
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 1.2, type: "spring", stiffness: 300, damping: 24 }}
-          onClick={() => window.location.href = "/concierge"}
+          onClick={() => setConciergeOpen(true)}
           className="flex items-center gap-2.5 bg-[#0D2240] hover:bg-[#1B6BB0] text-white pl-4 pr-5 py-3 rounded-full shadow-lg font-semibold text-sm transition-colors duration-200"
         >
-          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M1 2C1 1.45 1.45 1 2 1H10C10.55 1 11 1.45 11 2V8C11 8.55 10.55 9 10 9H7L4 11V9H2C1.45 9 1 8.55 1 8V2Z" fill="white" />
-            </svg>
-          </div>
+          <MessageCircle size={16} strokeWidth={2} />
           Ask the concierge
         </motion.button>
       </div>
+
+      {/* Concierge panel */}
+      <ConciergePanel
+        isOpen={conciergeOpen}
+        onClose={() => setConciergeOpen(false)}
+        context="packages"
+        tripContext={tripContext}
+        packagesContext={packagesContext}
+        onAction={handleAction}
+        appliedActionIds={appliedActions}
+      />
     </div>
   );
 }

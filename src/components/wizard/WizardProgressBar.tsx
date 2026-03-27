@@ -3,23 +3,22 @@
 import { motion } from "framer-motion";
 import { useTripContext } from "@/context/TripContext";
 
-// Skier SVG positioned along a slope line
-// Slope goes from top-left (x=2%, y=25%) to bottom-right (x=98%, y=75%)
-const SLOPE_X1 = 2;
-const SLOPE_Y1 = 22;
-const SLOPE_X2 = 98;
-const SLOPE_Y2 = 78;
-
-function SkierIcon({ x, y, angle }: { x: number; y: number; angle: number }) {
+// Skier rendered in its own natural coordinate space — never squished
+function SkierSvg() {
   return (
-    <g transform={`translate(${x}, ${y}) rotate(${angle})`}>
+    <svg
+      width="24"
+      height="30"
+      viewBox="-8 -14 16 24"
+      overflow="visible"
+    >
       {/* Head */}
       <circle cx="0" cy="-7" r="2.8" fill="#0D2240" />
       {/* Helmet */}
       <path d="M-2.8,-9 Q0,-12 2.8,-9" stroke="#1B6BB0" strokeWidth="1.5" fill="none" />
       {/* Body */}
       <line x1="0" y1="-4" x2="-1" y2="4" stroke="#0D2240" strokeWidth="2" strokeLinecap="round" />
-      {/* Arms — angled forward */}
+      {/* Arms */}
       <line x1="-1" y1="-1" x2="-5" y2="1" stroke="#0D2240" strokeWidth="1.5" strokeLinecap="round" />
       <line x1="-1" y1="-1" x2="4" y2="-0.5" stroke="#0D2240" strokeWidth="1.5" strokeLinecap="round" />
       {/* Poles */}
@@ -31,7 +30,7 @@ function SkierIcon({ x, y, angle }: { x: number; y: number; angle: number }) {
       {/* Skis */}
       <line x1="-6" y1="10" x2="0" y2="9.5" stroke="#1B6BB0" strokeWidth="2" strokeLinecap="round" />
       <line x1="-1" y1="10" x2="5.5" y2="9.5" stroke="#1B6BB0" strokeWidth="2" strokeLinecap="round" />
-    </g>
+    </svg>
   );
 }
 
@@ -40,66 +39,61 @@ const STEP_LABELS = ["Dates", "Budget", "Group", "Pass", "Dining"];
 export default function WizardProgressBar() {
   const { currentStep, totalSteps } = useTripContext();
 
-  // Progress 0–1
   const t = (currentStep - 1) / (totalSteps - 1);
-
-  // Skier position along slope
-  const skierX = SLOPE_X1 + (SLOPE_X2 - SLOPE_X1) * t;
-  const skierY = SLOPE_Y1 + (SLOPE_Y2 - SLOPE_Y1) * t;
-
-  // Slope angle in degrees
-  const slopeAngle = Math.atan2(SLOPE_Y2 - SLOPE_Y1, SLOPE_X2 - SLOPE_X1) * (180 / Math.PI);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 shadow-lg">
-      <div className="max-w-2xl mx-auto px-6 pt-3 pb-5">
-        {/* SVG slope + skier */}
-        <svg viewBox="0 0 100 100" className="w-full h-16" preserveAspectRatio="none">
-          {/* Step markers on slope */}
+      <div className="max-w-2xl mx-auto px-6 pt-4 pb-5">
+
+        {/* Track + skier */}
+        <div className="relative mb-3" style={{ height: 36 }}>
+          {/* Background track */}
+          <div className="absolute left-0 right-0 h-1.5 rounded-full bg-[#E8ECF0]" style={{ top: 28 }} />
+
+          {/* Filled portion */}
+          <motion.div
+            className="absolute left-0 h-1.5 rounded-full bg-[#1B6BB0]"
+            style={{ top: 28 }}
+            animate={{ width: `${t * 100}%` }}
+            transition={{ type: "spring", stiffness: 140, damping: 22 }}
+          />
+
+          {/* Step dots */}
           {STEP_LABELS.map((_, i) => {
-            const mt = i / (totalSteps - 1);
-            const mx = SLOPE_X1 + (SLOPE_X2 - SLOPE_X1) * mt;
-            const my = SLOPE_Y1 + (SLOPE_Y2 - SLOPE_Y1) * mt;
-            const done = i < currentStep - 1;
+            const pct = (i / (totalSteps - 1)) * 100;
+            const done    = i < currentStep - 1;
             const current = i === currentStep - 1;
             return (
-              <circle
+              <div
                 key={i}
-                cx={mx}
-                cy={my}
-                r={current ? 2.2 : 1.4}
-                fill={done ? "#1B6BB0" : current ? "#0D2240" : "#DDDDDD"}
+                className="absolute rounded-full -translate-x-1/2"
+                style={{
+                  left:   `${pct}%`,
+                  top:    current ? 24 : 26,
+                  width:  current ? 8 : 5,
+                  height: current ? 8 : 5,
+                  backgroundColor: done ? "#1B6BB0" : current ? "#0D2240" : "#DDDDDD",
+                }}
               />
             );
           })}
 
-          {/* Slope background track */}
-          <line
-            x1={SLOPE_X1} y1={SLOPE_Y1}
-            x2={SLOPE_X2} y2={SLOPE_Y2}
-            stroke="#E8ECF0" strokeWidth="1.5" strokeLinecap="round"
-          />
-
-          {/* Filled portion */}
-          <line
-            x1={SLOPE_X1} y1={SLOPE_Y1}
-            x2={skierX} y2={skierY}
-            stroke="#1B6BB0" strokeWidth="1.5" strokeLinecap="round"
-          />
-
-          {/* Skier */}
-          <motion.g
-            animate={{ cx: skierX, cy: skierY }}
-            transition={{ type: "spring", stiffness: 120, damping: 20 }}
+          {/* Skier — slides along, skis sit on the track */}
+          <motion.div
+            className="absolute -translate-x-1/2"
+            style={{ top: 0 }}
+            animate={{ left: `${t * 100}%` }}
+            initial={{ left: "0%" }}
+            transition={{ type: "spring", stiffness: 140, damping: 22 }}
           >
-            <SkierIcon x={skierX} y={skierY} angle={slopeAngle} />
-          </motion.g>
-        </svg>
+            <SkierSvg />
+          </motion.div>
+        </div>
 
-        {/* Step labels below */}
-        <div className="flex justify-between mt-1">
+        {/* Step labels */}
+        <div className="flex justify-between">
           {STEP_LABELS.map((label, i) => {
-            const done = i < currentStep - 1;
+            const done    = i < currentStep - 1;
             const current = i === currentStep - 1;
             return (
               <span
@@ -113,6 +107,7 @@ export default function WizardProgressBar() {
             );
           })}
         </div>
+
       </div>
     </div>
   );

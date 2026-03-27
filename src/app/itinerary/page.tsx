@@ -6,9 +6,10 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   MapPin, MountainSnow, ChevronDown, Plane, Bus, Car,
-  Package, Sun, Coffee, UtensilsCrossed, Wine, CalendarDays,
+  Package, Sun, Coffee, Wine, CalendarDays,
   MessageCircle, CheckCircle,
 } from "lucide-react";
+import ConciergePanel, { ConciergeAction } from "@/components/concierge/ConciergePanel";
 import { useTripContext } from "@/context/TripContext";
 import { generateTripPackages, TripPackage } from "@/lib/generatePackages";
 import { getResortImage } from "@/data/images";
@@ -289,6 +290,11 @@ export default function ItineraryPage() {
   const router = useRouter();
   const { tripData } = useTripContext();
   const [expandedDay, setExpandedDay] = useState<number>(1);
+  const [conciergeOpen, setConciergeOpen] = useState(false);
+  const [appliedActions, setAppliedActions] = useState<Set<string>>(new Set());
+  // Per-day concierge notes and resort overrides
+  const [dayNotes, setDayNotes] = useState<Record<number, string>>({});
+  const [dayResortOverrides, setDayResortOverrides] = useState<Record<number, { resortId: string; resortName: string }>>({});
 
   // Generate packages from wizard data (or fallback demo)
   const packages = generateTripPackages(tripData.passType ? tripData : {
@@ -327,6 +333,39 @@ export default function ItineraryPage() {
 
   const skiDays = itinerary.filter(d => d.isSkiDay).length;
   const uniqueResorts = [...new Set(itinerary.filter(d => d.resort).map(d => d.resort!))];
+
+  // Build concierge context
+  const tripContext = [
+    `Resort: ${selectedPkg.resort.name}`,
+    `Pass: ${tripData.passType ?? selectedPkg.liftTicketInfo.passName ?? "unknown"}`,
+    `Group: ${tripData.groupMembers.length} people`,
+    `Skill levels: ${[...new Set(tripData.groupMembers.map(m => m.skillLevel))].join(", ")}`,
+    `Departure city: ${tripData.departureCity || "not specified"}`,
+    `Eligible resorts on pass: ${selectedPkg.eligibleResorts.map(r => `${r.name} (id: ${r.id})`).join(", ")}`,
+  ].join("\n");
+
+  const itineraryContext = itinerary.map((day) => {
+    const note = dayNotes[day.day - 1];
+    const override = dayResortOverrides[day.day - 1];
+    return [
+      `Day ${day.day} (${day.dateStr}): ${day.isArrival ? "Arrival" : day.isDeparture ? "Departure" : day.isSkiDay ? `Ski day at ${override?.resortName ?? day.resort?.name ?? "TBD"}` : "Rest day"}`,
+      note ? `  Note: ${note}` : "",
+    ].filter(Boolean).join("\n");
+  }).join("\n");
+
+  function handleConciergeAction(action: ConciergeAction) {
+    setAppliedActions((prev) => new Set([...prev, action.id]));
+
+    if (action.tool === "update_day_note") {
+      const { dayIndex, note } = action.input as { dayIndex: number; note: string };
+      setDayNotes((prev) => ({ ...prev, [dayIndex]: note }));
+      setExpandedDay(dayIndex + 1); // expand the updated day
+    } else if (action.tool === "swap_day_resort") {
+      const { dayIndex, resortId, resortName } = action.input as { dayIndex: number; resortId: string; resortName: string };
+      setDayResortOverrides((prev) => ({ ...prev, [dayIndex]: { resortId, resortName } }));
+      setExpandedDay(dayIndex + 1);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#F4F6F8]">
@@ -375,7 +414,12 @@ export default function ItineraryPage() {
       <div className="px-6 pb-24 max-w-3xl mx-auto space-y-3">
         {itinerary.map((day, i) => {
           const isExpanded = expandedDay === day.day;
-          const color = day.resort ? resortColor(day.resort.id) : "#8A9BB0";
+          const dayNote = dayNotes[day.day - 1];
+          const resortOverride = dayResortOverrides[day.day - 1];
+          const effectiveResort = resortOverride
+            ? (selectedPkg.eligibleResorts.find(r => r.id === resortOverride.resortId) ?? day.resort)
+            : day.resort;
+          const color = effectiveResort ? resortColor(effectiveResort.id) : "#8A9BB0";
 
           return (
             <motion.div
@@ -414,17 +458,17 @@ export default function ItineraryPage() {
                     )}
                   </div>
                   <p className="text-[#8A9BB0] text-xs truncate">
-                    {day.resort
-                      ? day.resort.name.replace(" Ski Area","").replace(" Mountain","").replace(" Resort","")
+                    {effectiveResort
+                      ? effectiveResort.name.replace(" Ski Area","").replace(" Mountain","").replace(" Resort","")
                       : day.isArrival ? "Arrival day" : day.isDeparture ? "Departure day" : "Rest day"
                     } · {day.breakfast.name} → {day.dinner.name}
                   </p>
                 </div>
 
                 {/* Resort thumbnail if ski day */}
-                {day.resort && (
+                {effectiveResort && (
                   <div className="relative w-14 h-10 rounded-xl overflow-hidden flex-shrink-0 hidden sm:block">
-                    <Image src={getResortImage(day.resort.id)} alt={day.resort.name} fill className="object-cover" sizes="56px" />
+                    <Image src={getResortImage(effectiveResort.id)} alt={effectiveResort.name} fill className="object-cover" sizes="56px" />
                   </div>
                 )}
 
@@ -449,11 +493,11 @@ export default function ItineraryPage() {
                   >
                     <div className="px-4 pb-5 space-y-4 border-t border-gray-50">
                       {/* Resort hero image for ski days */}
-                      {day.resort && (
+                      {effectiveResort && (
                         <div className="relative h-32 rounded-xl overflow-hidden mt-3">
                           <Image
-                            src={getResortImage(day.resort.id)}
-                            alt={day.resort.name}
+                            src={getResortImage(effectiveResort.id)}
+                            alt={effectiveResort.name}
                             fill
                             className="object-cover"
                             sizes="672px"
@@ -461,13 +505,24 @@ export default function ItineraryPage() {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                           <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
                             <div>
-                              <p className="text-white font-black text-lg leading-tight">{day.resort.name}</p>
-                              <p className="text-white/70 text-xs">{day.resort.location} · {day.resort.annualSnowfall}" annual snow</p>
+                              <p className="text-white font-black text-lg leading-tight">{effectiveResort.name}</p>
+                              <p className="text-white/70 text-xs">{effectiveResort.location} · {effectiveResort.annualSnowfall}&quot; annual snow</p>
                             </div>
                             <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-lg px-2.5 py-1.5">
                               <MapPin size={10} className="text-white/80" />
-                              <span className="text-white text-xs font-semibold">{day.resort.region}</span>
+                              <span className="text-white text-xs font-semibold">{effectiveResort.region}</span>
                             </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Concierge tip */}
+                      {dayNote && (
+                        <div className="mt-3 flex items-start gap-2.5 bg-[#F4F6F8] border border-[#1B6BB0]/20 rounded-xl px-4 py-3">
+                          <MessageCircle size={13} className="text-[#1B6BB0] flex-shrink-0 mt-0.5" strokeWidth={2} />
+                          <div>
+                            <p className="text-[10px] font-bold text-[#1B6BB0] uppercase tracking-wider mb-0.5">Concierge tip</p>
+                            <p className="text-sm text-[#3D5066]">{dayNote}</p>
                           </div>
                         </div>
                       )}
@@ -562,19 +617,36 @@ export default function ItineraryPage() {
         </button>
       </div>
 
-      {/* Floating concierge */}
-      <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50">
+      {/* Floating concierge button */}
+      <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40">
         <motion.button
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.8, type: "spring" }}
           className="flex items-center gap-2 bg-[#0D2240] text-white px-4 py-3 rounded-full shadow-xl font-semibold text-sm hover:bg-[#1B6BB0] transition-colors"
-          onClick={() => window.location.href = "/concierge"}
+          onClick={() => setConciergeOpen(true)}
         >
           <MessageCircle size={15} strokeWidth={2} />
-          Ask Concierge
+          Modify itinerary
         </motion.button>
       </div>
+
+      {/* Concierge panel */}
+      <ConciergePanel
+        isOpen={conciergeOpen}
+        onClose={() => setConciergeOpen(false)}
+        context="itinerary"
+        tripContext={tripContext}
+        itineraryContext={itineraryContext}
+        onAction={handleConciergeAction}
+        appliedActionIds={appliedActions}
+        suggestedPrompts={[
+          "What's the best restaurant for a group dinner?",
+          "Can we swap Day 2 to Snowbird instead?",
+          "Add a tip for the rest day",
+          "How do we get from our hotel to the slopes?",
+        ]}
+      />
     </div>
   );
 }

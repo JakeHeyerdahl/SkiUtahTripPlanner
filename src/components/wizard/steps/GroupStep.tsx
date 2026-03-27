@@ -42,7 +42,7 @@ export default function GroupStep() {
 
   return (
     <motion.div
-      className="flex flex-col items-center justify-center min-h-[calc(100vh-140px)] px-6 py-12"
+      className="flex flex-col items-center px-6 py-12"
       initial={{ opacity: 0, x: 60 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -60 }}
@@ -82,7 +82,7 @@ export default function GroupStep() {
         </motion.div>
 
         {/* Member cards */}
-        <div className="space-y-3 mb-6 max-h-[45vh] overflow-y-auto pr-1">
+        <div className="space-y-3 mb-6">
           <AnimatePresence>
             {members.map((member, i) => (
               <motion.div
