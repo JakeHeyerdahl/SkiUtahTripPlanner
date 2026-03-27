@@ -212,6 +212,7 @@ export default function ConciergePanel({
         }),
       });
 
+      if (!res.ok) throw new Error(`API error ${res.status}`);
       if (!res.body) throw new Error("No response body");
 
       const reader = res.body.getReader();
