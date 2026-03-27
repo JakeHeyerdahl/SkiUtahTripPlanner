@@ -5,9 +5,8 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
-  MapPin, Snowflake, Wind, Layers,
-  Plane, Hotel, Star, Check, ChevronRight,
-  Clock, ArrowRight, Users, Ticket, MessageCircle, X,
+  Snowflake, Plane, Hotel, Star, Check, ChevronRight,
+  Clock, Users, Ticket, MessageCircle, MapPin,
 } from "lucide-react";
 import { TripProvider, useTripContext } from "@/context/TripContext";
 import { generateTripPackages, calcPackageTotal, TripPackage } from "@/lib/generatePackages";
@@ -224,15 +223,12 @@ function ResortCard({ resort, selected, onToggle }: { resort: import("@/types").
         <p className="absolute bottom-2 left-3 text-white font-bold text-sm leading-tight drop-shadow">
           {resort.name.replace(" Ski Area","").replace(" Mountain","").replace(" Resort","")}
         </p>
-        {/* Checkmark */}
+        {/* Checkmark / empty circle */}
         <div className={cn(
           "absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all",
-          selected ? "bg-white" : "bg-white/30"
+          selected ? "bg-white" : "border-2 border-white/70 bg-transparent"
         )}>
-          {selected
-            ? <Check size={11} strokeWidth={3} className="text-[#222222]" />
-            : <X size={11} strokeWidth={2.5} className="text-white" />
-          }
+          {selected && <Check size={11} strokeWidth={3} className="text-[#222222]" />}
         </div>
       </div>
 
@@ -308,8 +304,6 @@ function PackageCard({ pkg, groupSize, index, externalHotelId, externalFlightId,
     "bg-[#F7F7F7] text-[#222222] border border-[#DDDDDD]",
   ];
 
-  const resortImg = getResortImage(pkg.resort.id);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -351,60 +345,6 @@ function PackageCard({ pkg, groupSize, index, externalHotelId, externalFlightId,
               onToggle={() => toggleResort(r.id)}
             />
           ))}
-        </div>
-      </div>
-
-      {/* ── Row 1: Resort ── */}
-      <div className="border-b border-[#EBEBEB]">
-        {/* Action shot image */}
-        <div className="relative h-56 overflow-hidden">
-          <Image
-            src={resortImg}
-            alt={pkg.resort.name}
-            fill
-            className="object-cover"
-            sizes="896px"
-            priority={index === 0}
-          />
-          {/* Gradient for text legibility */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-
-          {/* Resort name over image */}
-          <div className="absolute bottom-0 left-0 right-0 px-6 pb-5">
-            <div className="flex items-end justify-between gap-4">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <MapPin size={12} className="text-white/70 flex-shrink-0" />
-                  <span className="text-white/70 text-xs font-medium">{pkg.resort.location} · {pkg.resort.region}</span>
-                </div>
-                <h3 className="text-3xl font-bold text-white leading-tight">{pkg.resort.name}</h3>
-              </div>
-              {/* Pass logo badge over image */}
-              <div className="flex-shrink-0 bg-white/15 backdrop-blur-sm rounded-xl px-3 py-2 flex items-center gap-2 border border-white/20">
-                <Ticket size={12} className="text-white/80" />
-                <PassLogo passType={pkg.liftTicketInfo.passName as PassType} size="sm" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Resort stats below image */}
-        <div className="px-6 py-4">
-          <div className="grid grid-cols-4 gap-0 divide-x divide-[#EBEBEB] mb-4">
-            {[
-              { icon: <ArrowRight size={13} />, value: `${pkg.resort.verticalDrop.toLocaleString()} ft`, label: "Vertical" },
-              { icon: <Layers size={13} />, value: pkg.resort.skiableAcres.toLocaleString(), label: "Skiable Acres" },
-              { icon: <Wind size={13} />, value: `${pkg.resort.annualSnowfall}"`, label: "Annual Snow" },
-              { icon: <Users size={13} />, value: `${pkg.resort.lifts}`, label: "Lifts" },
-            ].map((stat) => (
-              <div key={stat.label} className="px-4 first:pl-0 last:pr-0">
-                <div className="flex items-center gap-1 mb-0.5 text-[#717171]">{stat.icon}</div>
-                <p className="text-base font-bold text-[#222222]">{stat.value}</p>
-                <p className="text-xs text-[#717171]">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-          <TerrainBar terrain={pkg.resort.terrain} />
         </div>
       </div>
 
@@ -471,7 +411,7 @@ function PackageCard({ pkg, groupSize, index, externalHotelId, externalFlightId,
 
           <button
             onClick={() => {
-              updateTrip({ selectedPackage: { packageId: pkg.id, hotelId: selectedHotelId, flightId: selectedFlightId } });
+              updateTrip({ selectedPackage: { packageId: pkg.id, hotelId: selectedHotelId, flightId: selectedFlightId, selectedResortIds: [...selectedResortIds] } });
               router.push("/itinerary");
             }}
             className="flex items-center gap-2 bg-[#0D2240] hover:bg-[#1B6BB0] text-white font-semibold text-sm px-6 py-4 rounded-xl transition-colors duration-200 whitespace-nowrap active:scale-[0.98] flex-shrink-0"

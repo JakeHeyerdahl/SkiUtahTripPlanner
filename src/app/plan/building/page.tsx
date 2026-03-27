@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Calendar, Snowflake, Plane, Hotel, Star, Utensils, Mountain, Check } from "lucide-react";
 
 const SEARCH_STEPS = [
@@ -107,13 +108,15 @@ export default function BuildingPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-10"
         >
-          <div className="inline-flex items-center gap-3 mb-4">
-            <svg width="40" height="32" viewBox="0 0 40 32" fill="none">
-              <path d="M20 2L36 30H4L20 2Z" fill="#5BB8F5" />
-              <path d="M20 2L28 16H12L20 2Z" fill="white" opacity="0.3" />
-              <path d="M14 16L20 2L20 16Z" fill="white" opacity="0.15" />
-            </svg>
-            <span className="text-white text-xl font-black tracking-widest">SKI UTAH</span>
+          <div className="inline-flex items-center justify-center mb-4">
+            <Image
+              src="/ski-utah-logo.svg"
+              alt="Ski Utah"
+              width={180}
+              height={56}
+              className="brightness-0 invert"
+              priority
+            />
           </div>
           <h1 className="text-3xl font-black text-white leading-tight">
             Building Your<br />

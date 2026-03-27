@@ -7,7 +7,7 @@ import Image from "next/image";
 import {
   MapPin, MountainSnow, ChevronDown, Plane, Bus, Car,
   Package, Sun, Coffee, Wine, CalendarDays,
-  MessageCircle, CheckCircle,
+  MessageCircle, CheckCircle, Check, GraduationCap, Sparkles, Snowflake,
 } from "lucide-react";
 import ConciergePanel, { ConciergeAction } from "@/components/concierge/ConciergePanel";
 import { useTripContext } from "@/context/TripContext";
@@ -267,6 +267,34 @@ function buildItinerary(pkg: TripPackage, tripDays: number, dates: Date[], renta
   return days;
 }
 
+// ─── Add-on definitions ───────────────────────────────────────────────────────
+interface Addon {
+  id: string;
+  label: string;
+  description: string;
+  price: string;
+  icon: "lesson" | "spa" | "snowshoe" | "tubing" | "snowmobile";
+}
+
+const SKI_LESSON_ADDON: Addon = {
+  id: "ski-lesson",
+  label: "Group Ski Lesson",
+  description: "2-hr beginner lesson with a certified instructor — rentals included",
+  price: "$120/person",
+  icon: "lesson",
+};
+
+const CHILLING_ADDONS: Addon[] = [
+  { id: "spa",          label: "Spa Day",           description: "Full-day access to resort spa, pool & hot tub",                  price: "$180/person", icon: "spa" },
+  { id: "snowshoe",    label: "Snowshoe Tour",      description: "Guided 3-hr snowshoe through backcountry terrain",               price: "$75/person",  icon: "snowshoe" },
+  { id: "tubing",      label: "Snow Tubing",        description: "2-hr snow tubing session at the dedicated tubing hill",          price: "$45/person",  icon: "tubing" },
+  { id: "snowmobile",  label: "Snowmobile Tour",    description: "1.5-hr guided snowmobile adventure through mountain trails",     price: "$195/person", icon: "snowmobile" },
+  { id: "iceskate",    label: "Ice Skating",        description: "Outdoor rink skating with skate rental included",                price: "$35/person",  icon: "tubing" },
+  { id: "sleigh",      label: "Horse-Drawn Sleigh", description: "Scenic 1-hr sleigh ride through snow-covered mountain meadows", price: "$90/person",  icon: "snowshoe" },
+  { id: "dogsleds",    label: "Dog Sled Tour",      description: "Exhilarating 2-hr dog sled experience with a local musher",     price: "$225/person", icon: "snowmobile" },
+  { id: "village",     label: "Village & Shopping", description: "Browse boutique shops, galleries & cozy cafés in the village",  price: "Free",        icon: "spa" },
+];
+
 // ─── Resort color map ─────────────────────────────────────────────────────────
 const RESORT_COLORS: Record<string, string> = {
   "alta":            "#6B2FA0",
@@ -289,7 +317,8 @@ function resortColor(id: string) {
 export default function ItineraryPage() {
   const router = useRouter();
   const { tripData } = useTripContext();
-  const [expandedDay, setExpandedDay] = useState<number>(1);
+  const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set());
+  const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
   const [conciergeOpen, setConciergeOpen] = useState(false);
   const [appliedActions, setAppliedActions] = useState<Set<string>>(new Set());
   // Per-day concierge notes and resort overrides
@@ -328,8 +357,41 @@ export default function ItineraryPage() {
   const selectedFlight = selectedPkg.flightOptions.find(f => f.id === (tripData.selectedPackage?.flightId ?? selectedPkg.selectedFlightId));
   const returnFlightTime = selectedFlight?.returnDepartureTime;
 
+  // Filter eligible resorts by user's selection from packages screen
+  const selectedResortIds = tripData.selectedPackage?.selectedResortIds;
+  const filteredPkg = (() => {
+    if (!selectedResortIds?.length) return selectedPkg;
+    const filteredResorts = selectedPkg.eligibleResorts.filter(r => selectedResortIds.includes(r.id));
+    const primaryResort = selectedResortIds.includes(selectedPkg.resort.id)
+      ? selectedPkg.resort
+      : (filteredResorts[0] ?? selectedPkg.resort);
+    return { ...selectedPkg, resort: primaryResort, eligibleResorts: filteredResorts };
+  })();
+
   const rentalCount = tripData.groupMembers.filter(m => m.needsRental && m.activity !== "chilling").length;
-  const itinerary = buildItinerary(selectedPkg, tripData.tripDays, tripData.dates, rentalCount, tripData.departureCity, returnFlightTime);
+  const itinerary = buildItinerary(filteredPkg, tripData.tripDays, tripData.dates, rentalCount, tripData.departureCity, returnFlightTime);
+
+  // Open all days on first render
+  const allDayNums = new Set(itinerary.map(d => d.day));
+  if (expandedDays.size === 0 && allDayNums.size > 0) {
+    setExpandedDays(allDayNums);
+  }
+
+  // Determine which add-ons to surface
+  const hasBeginners = tripData.groupMembers.some(m => m.skillLevel === "beginner" && m.activity !== "chilling");
+  const hasChillers = tripData.groupMembers.some(m => m.activity === "chilling");
+  const firstSkiDayNum = itinerary.find(d => d.isSkiDay)?.day ?? -1;
+  const skiDayNums = itinerary.filter(d => d.isSkiDay).map(d => d.day);
+
+  // For a given ski day, return 2 chilling addons not yet selected on other ski days
+  function getChillAddonsForDay(dayNum: number): Addon[] {
+    const selectedElsewhere = new Set(
+      CHILLING_ADDONS
+        .filter(a => skiDayNums.filter(d => d !== dayNum).some(d => selectedAddons.has(`${d}-${a.id}`)))
+        .map(a => a.id)
+    );
+    return CHILLING_ADDONS.filter(a => !selectedElsewhere.has(a.id)).slice(0, 2);
+  }
 
   const skiDays = itinerary.filter(d => d.isSkiDay).length;
   const uniqueResorts = [...new Set(itinerary.filter(d => d.resort).map(d => d.resort!))];
@@ -341,7 +403,7 @@ export default function ItineraryPage() {
     `Group: ${tripData.groupMembers.length} people`,
     `Skill levels: ${[...new Set(tripData.groupMembers.map(m => m.skillLevel))].join(", ")}`,
     `Departure city: ${tripData.departureCity || "not specified"}`,
-    `Eligible resorts on pass: ${selectedPkg.eligibleResorts.map(r => `${r.name} (id: ${r.id})`).join(", ")}`,
+    `Eligible resorts on pass: ${filteredPkg.eligibleResorts.map(r => `${r.name} (id: ${r.id})`).join(", ")}`,
   ].join("\n");
 
   const itineraryContext = itinerary.map((day) => {
@@ -359,11 +421,11 @@ export default function ItineraryPage() {
     if (action.tool === "update_day_note") {
       const { dayIndex, note } = action.input as { dayIndex: number; note: string };
       setDayNotes((prev) => ({ ...prev, [dayIndex]: note }));
-      setExpandedDay(dayIndex + 1); // expand the updated day
+      setExpandedDays(prev => new Set([...prev, dayIndex + 1]));
     } else if (action.tool === "swap_day_resort") {
       const { dayIndex, resortId, resortName } = action.input as { dayIndex: number; resortId: string; resortName: string };
       setDayResortOverrides((prev) => ({ ...prev, [dayIndex]: { resortId, resortName } }));
-      setExpandedDay(dayIndex + 1);
+      setExpandedDays(prev => new Set([...prev, dayIndex + 1]));
     }
   }
 
@@ -402,11 +464,11 @@ export default function ItineraryPage() {
       {/* Days */}
       <div className="px-6 pb-24 max-w-3xl mx-auto space-y-3">
         {itinerary.map((day, i) => {
-          const isExpanded = expandedDay === day.day;
+          const isExpanded = expandedDays.has(day.day);
           const dayNote = dayNotes[day.day - 1];
           const resortOverride = dayResortOverrides[day.day - 1];
           const effectiveResort = resortOverride
-            ? (selectedPkg.eligibleResorts.find(r => r.id === resortOverride.resortId) ?? day.resort)
+            ? (filteredPkg.eligibleResorts.find(r => r.id === resortOverride.resortId) ?? day.resort)
             : day.resort;
           const color = effectiveResort ? resortColor(effectiveResort.id) : "#8A9BB0";
 
@@ -421,7 +483,11 @@ export default function ItineraryPage() {
               {/* Day header */}
               <button
                 className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-50/50 transition-colors"
-                onClick={() => setExpandedDay(isExpanded ? -1 : day.day)}
+                onClick={() => setExpandedDays(prev => {
+                  const next = new Set(prev);
+                  isExpanded ? next.delete(day.day) : next.add(day.day);
+                  return next;
+                })}
               >
                 <div
                   className="w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0 text-white"
@@ -516,6 +582,104 @@ export default function ItineraryPage() {
                         </div>
                       )}
 
+                      {/* ── Ski lesson add-on ── */}
+                      {day.isSkiDay && day.day === firstSkiDayNum && hasBeginners && (() => {
+                        const key = `${day.day}-ski-lesson`;
+                        const active = selectedAddons.has(key);
+                        return (
+                          <div className="rounded-2xl border-2 border-[#1B6BB0] overflow-hidden">
+                            <div className="bg-[#1B6BB0] px-4 py-2.5 flex items-center gap-2">
+                              <GraduationCap size={15} className="text-white flex-shrink-0" strokeWidth={2} />
+                              <p className="text-sm font-black text-white tracking-tight">Learn how to ski!</p>
+                            </div>
+                            <button
+                              onClick={() => setSelectedAddons(prev => {
+                                const next = new Set(prev);
+                                active ? next.delete(key) : next.add(key);
+                                return next;
+                              })}
+                              className={cn(
+                                "w-full flex items-center gap-3 px-4 py-3 text-left transition-all duration-200",
+                                active ? "bg-[#EBF5FF]" : "bg-white hover:bg-[#F4F9FF]"
+                              )}
+                            >
+                              <div className="flex-1">
+                                <p className={cn("text-sm font-bold leading-tight", active ? "text-[#0D2240]" : "text-[#3D5066]")}>
+                                  {SKI_LESSON_ADDON.label}
+                                </p>
+                                <p className="text-xs text-[#8A9BB0] leading-snug mt-0.5">{SKI_LESSON_ADDON.description}</p>
+                              </div>
+                              <div className="flex items-center gap-2.5 flex-shrink-0">
+                                <span className={cn("text-sm font-black", active ? "text-[#1B6BB0]" : "text-[#3D5066]")}>{SKI_LESSON_ADDON.price}</span>
+                                <div className={cn(
+                                  "w-6 h-6 rounded-full flex items-center justify-center transition-all",
+                                  active ? "bg-[#1B6BB0]" : "border-2 border-[#DDDDDD] bg-white"
+                                )}>
+                                  {active && <Check size={11} strokeWidth={3} className="text-white" />}
+                                </div>
+                              </div>
+                            </button>
+                          </div>
+                        );
+                      })()}
+
+                      {/* ── Non-skier activities add-ons ── */}
+                      {day.isSkiDay && hasChillers && (() => {
+                        const chillAddons = getChillAddonsForDay(day.day);
+                        return (
+                          <div className="rounded-2xl border-2 border-[#6B2FA0] overflow-hidden">
+                            <div className="bg-[#6B2FA0] px-4 py-2.5 flex items-center gap-2">
+                              <Sparkles size={15} className="text-white flex-shrink-0" strokeWidth={2} />
+                              <p className="text-sm font-black text-white tracking-tight">Activities for the non-skiers!</p>
+                            </div>
+                            <div className="divide-y divide-[#F0EBF8]">
+                              {chillAddons.map((addon) => {
+                                const key = `${day.day}-${addon.id}`;
+                                const active = selectedAddons.has(key);
+                                const AddonIcon = addon.icon === "spa" ? Sparkles
+                                  : addon.icon === "snowshoe" ? MountainSnow
+                                  : addon.icon === "tubing" ? Snowflake
+                                  : Car;
+                                return (
+                                  <button
+                                    key={key}
+                                    onClick={() => setSelectedAddons(prev => {
+                                      const next = new Set(prev);
+                                      active ? next.delete(key) : next.add(key);
+                                      return next;
+                                    })}
+                                    className={cn(
+                                      "w-full flex items-center gap-3 px-4 py-3 text-left transition-all duration-200",
+                                      active ? "bg-[#F5F0FB]" : "bg-white hover:bg-[#FAF7FD]"
+                                    )}
+                                  >
+                                    <div className={cn(
+                                      "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all",
+                                      active ? "bg-[#6B2FA0]" : "bg-[#F5F0FB] border border-[#E0D5F0]"
+                                    )}>
+                                      <AddonIcon size={15} className={active ? "text-white" : "text-[#6B2FA0]"} strokeWidth={2} />
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className={cn("text-sm font-bold leading-tight", active ? "text-[#3D1A6B]" : "text-[#3D5066]")}>{addon.label}</p>
+                                      <p className="text-xs text-[#8A9BB0] leading-snug mt-0.5">{addon.description}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2.5 flex-shrink-0">
+                                      <span className={cn("text-sm font-black", active ? "text-[#6B2FA0]" : "text-[#3D5066]")}>{addon.price}</span>
+                                      <div className={cn(
+                                        "w-6 h-6 rounded-full flex items-center justify-center transition-all",
+                                        active ? "bg-[#6B2FA0]" : "border-2 border-[#DDDDDD] bg-white"
+                                      )}>
+                                        {active && <Check size={11} strokeWidth={3} className="text-white" />}
+                                      </div>
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
                       {/* Transport info for arrival/departure */}
                       {(day.isArrival || day.isDeparture) && day.transportNote && (
                         <div className="mt-3 bg-[#EBF5FF] rounded-xl px-4 py-3 flex items-start gap-2.5">
@@ -524,20 +688,41 @@ export default function ItineraryPage() {
                         </div>
                       )}
 
-                      {/* Activities */}
-                      {day.activities.length > 0 && (
-                        <div className="pt-1">
-                          <p className="text-[10px] font-bold text-[#8A9BB0] uppercase tracking-wider mb-2">Activities & Logistics</p>
-                          <ul className="space-y-1.5">
-                            {day.activities.map((act, j) => (
-                              <li key={j} className="flex items-start gap-2 text-sm text-[#3D5066]">
-                                <CheckCircle size={13} className="text-[#1B6BB0] flex-shrink-0 mt-0.5" strokeWidth={2} />
-                                {act}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                      {/* Activities (with selected add-ons injected) */}
+                      {(() => {
+                        const addonActivities: string[] = [];
+                        if (day.isSkiDay && day.day === firstSkiDayNum && hasBeginners && selectedAddons.has(`${day.day}-ski-lesson`)) {
+                          addonActivities.push(`Group Ski Lesson — 2-hr beginner lesson with a certified instructor (${SKI_LESSON_ADDON.price})`);
+                        }
+                        getChillAddonsForDay(day.day).forEach(addon => {
+                          if (day.isSkiDay && hasChillers && selectedAddons.has(`${day.day}-${addon.id}`)) {
+                            addonActivities.push(`${addon.label} — ${addon.description} (${addon.price})`);
+                          }
+                        });
+                        const allActivities = [...addonActivities, ...day.activities];
+                        if (allActivities.length === 0) return null;
+                        return (
+                          <div className="pt-1">
+                            <p className="text-[10px] font-bold text-[#8A9BB0] uppercase tracking-wider mb-2">Activities & Logistics</p>
+                            <ul className="space-y-1.5">
+                              {allActivities.map((act, j) => (
+                                <li key={j} className={cn(
+                                  "flex items-start gap-2 text-sm",
+                                  j < addonActivities.length ? "text-[#0D2240] font-semibold" : "text-[#3D5066]"
+                                )}>
+                                  <CheckCircle
+                                    size={13}
+                                    className={cn("flex-shrink-0 mt-0.5", j < addonActivities.length ? "text-[#1B6BB0]" : "text-[#1B6BB0]")}
+                                    strokeWidth={2}
+                                    fill={j < addonActivities.length ? "#EBF5FF" : "none"}
+                                  />
+                                  {act}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      })()}
 
                       {/* Gear rental callout on arrival */}
                       {day.isArrival && rentalCount > 0 && (

@@ -20,6 +20,7 @@ export interface SelectedPackage {
   packageId: string;
   hotelId: string;
   flightId: string;
+  selectedResortIds: string[];
 }
 
 export interface TripData {
