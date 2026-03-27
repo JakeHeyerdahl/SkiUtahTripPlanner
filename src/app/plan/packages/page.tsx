@@ -7,7 +7,7 @@ import Image from "next/image";
 import {
   MapPin, Snowflake, Wind, Layers,
   Plane, Hotel, Star, Check, ChevronRight,
-  Clock, ArrowRight, Users, Ticket, MessageCircle,
+  Clock, ArrowRight, Users, Ticket, MessageCircle, X,
 } from "lucide-react";
 import { TripProvider, useTripContext } from "@/context/TripContext";
 import { generateTripPackages, calcPackageTotal, TripPackage } from "@/lib/generatePackages";
@@ -204,11 +204,93 @@ interface PackageCardProps {
   onSelectionsChange?: (hotelId: string, flightId: string) => void;
 }
 
+// ─── Resort Card ──────────────────────────────────────────────────────────────
+function ResortCard({ resort, selected, onToggle }: { resort: import("@/types").Resort; selected: boolean; onToggle: () => void }) {
+  const img = getResortImage(resort.id);
+  return (
+    <button
+      onClick={onToggle}
+      className={cn(
+        "relative flex-1 min-w-[180px] rounded-2xl border text-left transition-all duration-200 overflow-hidden bg-white",
+        selected
+          ? "border-[#222222] shadow-[0_0_0_1px_#222222]"
+          : "border-[#DDDDDD] opacity-50 hover:opacity-75 hover:border-[#AAAAAA]"
+      )}
+    >
+      {/* Resort photo */}
+      <div className="relative h-24 overflow-hidden bg-[#F7F7F7]">
+        <Image src={img} alt={resort.name} fill className="object-cover" sizes="220px" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+        <p className="absolute bottom-2 left-3 text-white font-bold text-sm leading-tight drop-shadow">
+          {resort.name.replace(" Ski Area","").replace(" Mountain","").replace(" Resort","")}
+        </p>
+        {/* Checkmark */}
+        <div className={cn(
+          "absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center transition-all",
+          selected ? "bg-white" : "bg-white/30"
+        )}>
+          {selected
+            ? <Check size={11} strokeWidth={3} className="text-[#222222]" />
+            : <X size={11} strokeWidth={2.5} className="text-white" />
+          }
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="p-3 space-y-2">
+        <div className="grid grid-cols-3 gap-1 divide-x divide-[#EBEBEB]">
+          {[
+            { value: `${resort.verticalDrop.toLocaleString()}`, label: "Vert ft" },
+            { value: resort.skiableAcres.toLocaleString(), label: "Acres" },
+            { value: String(resort.lifts), label: "Lifts" },
+          ].map((s) => (
+            <div key={s.label} className="px-1.5 first:pl-0 last:pr-0 text-center">
+              <p className="text-xs font-bold text-[#222222]">{s.value}</p>
+              <p className="text-[9px] text-[#717171]">{s.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Terrain breakdown */}
+        <div className="flex items-center gap-2.5 pt-1 border-t border-[#F0F0F0]">
+          <span className="flex items-center gap-1 text-[10px] font-semibold text-[#008A05]">
+            <span className="w-3 h-3 rounded-full bg-[#008A05] inline-block flex-shrink-0" />
+            {resort.terrain.green}%
+          </span>
+          <span className="flex items-center gap-1 text-[10px] font-semibold text-[#1B6BB0]">
+            <span className="w-3 h-3 rounded-sm bg-[#1B6BB0] inline-block flex-shrink-0" />
+            {resort.terrain.blue}%
+          </span>
+          <span className="flex items-center gap-1 text-[10px] font-semibold text-[#222222]">
+            <svg width="12" height="12" viewBox="0 0 12 12" className="flex-shrink-0">
+              <polygon points="6,1 11,11 1,11" fill="#222222" />
+            </svg>
+            {resort.terrain.black}%
+          </span>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+// ─── Package Card ──────────────────────────────────────────────────────────────
 function PackageCard({ pkg, groupSize, index, externalHotelId, externalFlightId, onSelectionsChange }: PackageCardProps) {
   const router = useRouter();
   const { updateTrip } = useTripContext();
   const [selectedHotelId, setSelectedHotelId] = useState(externalHotelId ?? pkg.hotelOptions[0]?.id ?? "");
   const [selectedFlightId, setSelectedFlightId] = useState(externalFlightId ?? pkg.flightOptions[0]?.id ?? "");
+  const [selectedResortIds, setSelectedResortIds] = useState<Set<string>>(
+    new Set(pkg.eligibleResorts.map((r) => r.id))
+  );
+
+  function toggleResort(id: string) {
+    setSelectedResortIds((prev) => {
+      if (prev.size === 1 && prev.has(id)) return prev; // keep at least one
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
 
   // Sync external changes (from concierge actions)
   if (externalHotelId && externalHotelId !== selectedHotelId) setSelectedHotelId(externalHotelId);
@@ -250,39 +332,25 @@ function PackageCard({ pkg, groupSize, index, externalHotelId, externalFlightId,
         </div>
       </div>
 
-      {/* ── Eligible resorts strip ── */}
-      <div className="px-6 py-4 border-b border-[#EBEBEB]">
-        <p className="text-[10px] font-semibold text-[#717171] uppercase tracking-widest mb-3">
-          All resorts on your pass ({pkg.eligibleResorts.length})
-        </p>
-        <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
-          {pkg.eligibleResorts.map((r) => {
-            const isPrimary = r.id === pkg.resort.id;
-            return (
-              <div key={r.id} className="flex-shrink-0 flex flex-col items-center gap-1.5">
-                <div className={cn(
-                  "relative w-16 h-12 rounded-xl overflow-hidden border-2 transition-all",
-                  isPrimary ? "border-[#222222]" : "border-transparent"
-                )}>
-                  <Image
-                    src={getResortImage(r.id)}
-                    alt={r.name}
-                    fill
-                    className="object-cover"
-                    sizes="64px"
-                  />
-                  {isPrimary && (
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                      <Star size={10} className="fill-white text-white" />
-                    </div>
-                  )}
-                </div>
-                <p className="text-[9px] font-semibold text-[#717171] text-center leading-tight max-w-[60px]">
-                  {r.name.replace(" Ski Area", "").replace(" Mountain", "").replace(" Resort", "")}
-                </p>
-              </div>
-            );
-          })}
+      {/* ── Resort cards ── */}
+      <div className="px-6 py-5 border-b border-[#EBEBEB]">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[10px] font-semibold text-[#717171] uppercase tracking-widest">
+            Resorts in your itinerary — deselect to remove
+          </p>
+          <span className="text-[10px] font-semibold text-[#717171]">
+            {selectedResortIds.size} of {pkg.eligibleResorts.length} selected
+          </span>
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+          {pkg.eligibleResorts.map((r) => (
+            <ResortCard
+              key={r.id}
+              resort={r}
+              selected={selectedResortIds.has(r.id)}
+              onToggle={() => toggleResort(r.id)}
+            />
+          ))}
         </div>
       </div>
 

@@ -283,15 +283,24 @@ export default function DateStep() {
             <label className="block text-sm font-semibold text-[#3D5066] mb-3">
               How many days is your trip?
             </label>
-            <div className="flex items-center gap-4 bg-[#F4F6F8] rounded-2xl p-4">
-              <button
-                onClick={() => handleTripDaysChange(tripDays - 1)}
-                disabled={tripDays <= 1}
-                className="w-10 h-10 rounded-full bg-white shadow-sm text-[#0D2240] font-bold text-xl flex items-center justify-center hover:shadow-md transition-shadow disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                −
-              </button>
-              <div className="flex-1 text-center">
+            <div className="flex items-center justify-between bg-[#F4F6F8] rounded-2xl p-4">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleTripDaysChange(tripDays - 1)}
+                  disabled={tripDays <= 1}
+                  className="w-10 h-10 rounded-full bg-white shadow-sm text-[#0D2240] font-bold text-xl flex items-center justify-center hover:shadow-md transition-shadow disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  −
+                </button>
+                <button
+                  onClick={() => handleTripDaysChange(tripDays === 0 ? 1 : tripDays + 1)}
+                  disabled={tripDays >= 14}
+                  className="w-10 h-10 rounded-full bg-[#0D2240] text-white font-bold text-xl flex items-center justify-center hover:bg-[#1B6BB0] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  +
+                </button>
+              </div>
+              <div className="text-right">
                 {tripDays === 0 ? (
                   <span className="text-[#8A9BB0] text-lg font-semibold">Choose days</span>
                 ) : (
@@ -303,13 +312,6 @@ export default function DateStep() {
                   </span>
                 )}
               </div>
-              <button
-                onClick={() => handleTripDaysChange(tripDays === 0 ? 1 : tripDays + 1)}
-                disabled={tripDays >= 14}
-                className="w-10 h-10 rounded-full bg-[#0D2240] text-white font-bold text-xl flex items-center justify-center hover:bg-[#1B6BB0] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                +
-              </button>
             </div>
           </motion.div>
         )}
