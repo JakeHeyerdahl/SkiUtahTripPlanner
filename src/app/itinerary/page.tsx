@@ -372,11 +372,21 @@ export default function ItineraryPage() {
       {/* Header */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20 px-6 py-5">
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-black text-[#0D2240] leading-tight">Your Utah Ski Itinerary</h1>
-            <p className="text-[#8A9BB0] text-sm truncate">
-              {itinerary.length} days · {skiDays} ski days · {uniqueResorts.map(r => r.name.replace(" Ski Area","").replace(" Mountain","").replace(" Resort","")).join(", ")}
-            </p>
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => router.push("/plan/packages")}
+              className="flex items-center gap-1.5 text-[#8A9BB0] hover:text-[#0D2240] transition-colors flex-shrink-0"
+            >
+              <ChevronDown size={16} strokeWidth={2.5} className="rotate-90" />
+              <span className="text-sm font-semibold hidden sm:inline">Packages</span>
+            </button>
+            <div className="w-px h-5 bg-gray-200 flex-shrink-0" />
+            <div className="min-w-0">
+              <h1 className="text-2xl font-black text-[#0D2240] leading-tight">Your Utah Ski Itinerary</h1>
+              <p className="text-[#8A9BB0] text-sm truncate">
+                {itinerary.length} days · {skiDays} ski days · {uniqueResorts.map(r => r.name.replace(" Ski Area","").replace(" Mountain","").replace(" Resort","")).join(", ")}
+              </p>
+            </div>
           </div>
           <motion.button
             whileHover={{ scale: 1.02 }}
