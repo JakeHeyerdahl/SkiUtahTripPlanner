@@ -1,0 +1,201 @@
+import { SkiSchool } from "@/types";
+
+export const skiSchools: SkiSchool[] = [
+  {
+    id: "deer-valley-ski-school",
+    name: "Deer Valley Ski School",
+    slug: "deer-valley-ski-school",
+    resort: "Deer Valley Resort",
+    region: "Park City",
+    description:
+      "Consistently rated the best ski school in North America. Small class sizes, PSIA-certified instructors, and a curriculum designed to maximize progression and fun.",
+    programs: [
+      {
+        name: "Never Ever Beginner",
+        skillLevel: ["beginner"],
+        ageGroup: "adults",
+        duration: "3 hours",
+        pricePerPerson: 249,
+        maxGroupSize: 5,
+        includes: ["Instruction", "Beginner lift access", "Equipment fitting assistance"],
+      },
+      {
+        name: "Mountain Experience",
+        skillLevel: ["intermediate", "advanced"],
+        ageGroup: "adults",
+        duration: "3 hours",
+        pricePerPerson: 299,
+        maxGroupSize: 5,
+        includes: ["Instruction", "Full mountain lift access"],
+      },
+      {
+        name: "Reindeer Club (Kids 4-12)",
+        skillLevel: ["beginner", "intermediate"],
+        ageGroup: "kids",
+        duration: "Full day",
+        pricePerPerson: 329,
+        maxGroupSize: 6,
+        includes: ["Instruction", "Lunch", "Lift access", "Indoor activities"],
+      },
+      {
+        name: "Private Lesson",
+        skillLevel: ["beginner", "intermediate", "advanced", "expert"],
+        ageGroup: "all",
+        duration: "2 hours",
+        pricePerPerson: 599,
+        includes: ["Private PSIA instructor", "Customized curriculum", "Full mountain access"],
+      },
+    ],
+    image: "/images/ski-school/deer-valley.jpg",
+    website: "https://www.deervalley.com/ski-school",
+    phone: "(435) 645-6648",
+  },
+  {
+    id: "park-city-ski-school",
+    name: "Park City Mountain Ski & Snowboard School",
+    slug: "park-city-ski-school",
+    resort: "Park City Mountain",
+    region: "Park City",
+    description:
+      "The largest ski school in Utah with hundreds of PSIA/AASI-certified instructors across Park City Mountain's 7,300 acres. Programs for every age and ability.",
+    programs: [
+      {
+        name: "First Tracks (Beginner Adults)",
+        skillLevel: ["beginner"],
+        ageGroup: "adults",
+        duration: "3 hours",
+        pricePerPerson: 189,
+        maxGroupSize: 8,
+        includes: ["Group instruction", "Beginner area access"],
+      },
+      {
+        name: "Progression Group Lesson",
+        skillLevel: ["intermediate", "advanced"],
+        ageGroup: "adults",
+        duration: "3 hours",
+        pricePerPerson: 169,
+        maxGroupSize: 8,
+        includes: ["Group instruction", "Full mountain access"],
+      },
+      {
+        name: "Kinderzug Kids (3-4 yrs)",
+        skillLevel: ["beginner"],
+        ageGroup: "kids",
+        duration: "Full day",
+        pricePerPerson: 269,
+        maxGroupSize: 4,
+        includes: ["Instruction", "Supervised play", "Lunch", "Beginner lift"],
+      },
+      {
+        name: "Kids Group Lesson (5-14 yrs)",
+        skillLevel: ["beginner", "intermediate", "advanced"],
+        ageGroup: "kids",
+        duration: "Full day",
+        pricePerPerson: 299,
+        maxGroupSize: 6,
+        includes: ["All-day instruction", "Lunch", "Full mountain access by ability"],
+      },
+      {
+        name: "Private Lesson",
+        skillLevel: ["beginner", "intermediate", "advanced", "expert"],
+        ageGroup: "all",
+        duration: "2 hours",
+        pricePerPerson: 499,
+        includes: ["Private instructor", "Full mountain access"],
+      },
+    ],
+    image: "/images/ski-school/park-city.jpg",
+    website: "https://www.parkcitymountain.com/ski-school",
+    phone: "(435) 649-8111",
+  },
+  {
+    id: "snowbird-ski-school",
+    name: "Snowbird Ski & Snowboard School",
+    slug: "snowbird-ski-school",
+    resort: "Snowbird",
+    region: "Salt Lake",
+    description:
+      "Learn to ski or snowboard at one of the most challenging mountains in the US. Snowbird's expert instructors specialize in powder technique and steep terrain.",
+    programs: [
+      {
+        name: "Learn to Ski Package",
+        skillLevel: ["beginner"],
+        ageGroup: "adults",
+        duration: "3 hours",
+        pricePerPerson: 199,
+        maxGroupSize: 6,
+        includes: ["Lesson", "Beginner lift ticket", "Rental equipment"],
+      },
+      {
+        name: "Mountain Masters",
+        skillLevel: ["advanced", "expert"],
+        ageGroup: "adults",
+        duration: "3 hours",
+        pricePerPerson: 259,
+        maxGroupSize: 5,
+        includes: ["Instruction", "Steep & deep terrain focus"],
+      },
+      {
+        name: "Chickadee Kids Camp (3-4 yrs)",
+        skillLevel: ["beginner"],
+        ageGroup: "kids",
+        duration: "Full day",
+        pricePerPerson: 289,
+        maxGroupSize: 4,
+        includes: ["Snow play", "Introduction to skiing", "Lunch", "Childcare"],
+      },
+      {
+        name: "Junior Freebird (5-14 yrs)",
+        skillLevel: ["beginner", "intermediate", "advanced"],
+        ageGroup: "kids",
+        duration: "Full day",
+        pricePerPerson: 319,
+        maxGroupSize: 6,
+        includes: ["All-day instruction", "Lunch", "Lift access"],
+      },
+    ],
+    image: "/images/ski-school/snowbird.jpg",
+    website: "https://www.snowbird.com/ski-school",
+    phone: "(801) 933-2170",
+  },
+  {
+    id: "alta-ski-school",
+    name: "Alta Children's Center & Ski School",
+    slug: "alta-ski-school",
+    resort: "Alta Ski Area",
+    region: "Salt Lake",
+    description:
+      "Alta's ski school specializes in developing true mountain skiers on one of the most storied ski mountains in America.",
+    programs: [
+      {
+        name: "Group Lesson",
+        skillLevel: ["beginner", "intermediate", "advanced"],
+        ageGroup: "adults",
+        duration: "3 hours",
+        pricePerPerson: 179,
+        maxGroupSize: 6,
+        includes: ["Instruction", "Terrain-appropriate lift access"],
+      },
+      {
+        name: "Alta Cubs (4-12 yrs)",
+        skillLevel: ["beginner", "intermediate"],
+        ageGroup: "kids",
+        duration: "Full day",
+        pricePerPerson: 289,
+        maxGroupSize: 5,
+        includes: ["Instruction", "Supervised lunch", "Lift access"],
+      },
+    ],
+    image: "/images/ski-school/alta.jpg",
+    website: "https://www.alta.com/ski-school",
+    phone: "(801) 742-3042",
+  },
+];
+
+export function getSkiSchoolsByRegion(region: string): SkiSchool[] {
+  return skiSchools.filter((s) => s.region === region);
+}
+
+export function getSkiSchoolBySlug(slug: string): SkiSchool | undefined {
+  return skiSchools.find((s) => s.slug === slug);
+}

@@ -1,26 +1,131 @@
 @import "tailwindcss";
 
+/* ─── Ski Utah Brand Tokens ─────────────────────────────────────────────────── */
 :root {
+  /* Brand Colors */
+  --color-navy:         #0D2240;   /* Primary dark blue — headers, nav, text */
+  --color-blue:         #1B6BB0;   /* Brand blue — CTAs, links, highlights */
+  --color-sky:          #5BB8F5;   /* Accent sky blue — hover, tags, accents */
+  --color-white:        #FFFFFF;
+  --color-off-white:    #F4F6F8;   /* Section backgrounds */
+  --color-gray-light:   #E8ECF0;   /* Borders, dividers */
+  --color-gray:         #8A9BB0;   /* Muted text */
+  --color-gray-dark:    #3D5066;   /* Secondary text */
+
+  /* Terrain Colors */
+  --color-green:        #2E7D32;
+  --color-terrain-blue: #1565C0;
+  --color-black:        #212121;
+
+  /* Shadows */
+  --shadow-card:        0 2px 12px rgba(13, 34, 64, 0.08);
+  --shadow-card-hover:  0 8px 32px rgba(13, 34, 64, 0.16);
+  --shadow-nav:         0 1px 0 rgba(13, 34, 64, 0.1);
+
+  /* Tailwind compat */
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0D2240;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─── Base ────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-white);
+  color: var(--color-navy);
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
 }
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--color-navy);
+}
+
+h1 { font-size: clamp(2rem, 5vw, 3.5rem); }
+h2 { font-size: clamp(1.5rem, 3vw, 2.5rem); }
+h3 { font-size: clamp(1.25rem, 2vw, 1.75rem); }
+
+:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─── Layout Utilities ────────────────────────────────────────────────────── */
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+@media (min-width: 768px)  { .container { padding: 0 2rem; } }
+@media (min-width: 1280px) { .container { padding: 0 2.5rem; } }
+
+.section { padding: 5rem 0; }
+
+/* ─── Card ────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--color-white);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  overflow: hidden;
+}
+.card:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+/* ─── Image overlays ──────────────────────────────────────────────────────── */
+.gradient-overlay {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(13, 34, 64, 0.55) 60%,
+    rgba(13, 34, 64, 0.85) 100%
+  );
+}
+
+/* ─── Terrain Badges ──────────────────────────────────────────────────────── */
+.badge-green  { background: var(--color-green);        color: #fff; }
+.badge-blue   { background: var(--color-terrain-blue); color: #fff; }
+.badge-black  { background: var(--color-black);        color: #fff; }
+
+/* ─── Animations ──────────────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-fade-in-up { animation: fadeInUp 0.4s ease forwards; }
+.animate-fade-in    { animation: fadeIn   0.3s ease forwards; }
+
+.stagger-1 { animation-delay: 0.05s; opacity: 0; }
+.stagger-2 { animation-delay: 0.10s; opacity: 0; }
+.stagger-3 { animation-delay: 0.15s; opacity: 0; }
+.stagger-4 { animation-delay: 0.20s; opacity: 0; }
+.stagger-5 { animation-delay: 0.25s; opacity: 0; }
+
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: var(--color-off-white); }
+::-webkit-scrollbar-thumb  { background: var(--color-gray-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-gray); }
