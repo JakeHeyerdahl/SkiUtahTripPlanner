@@ -371,32 +371,11 @@ export default function ItineraryPage() {
     <div className="min-h-screen bg-[#F4F6F8]">
       {/* Header */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20 px-6 py-5">
-        <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              onClick={() => router.push("/plan/packages")}
-              className="flex items-center gap-1.5 text-[#8A9BB0] hover:text-[#0D2240] transition-colors flex-shrink-0"
-            >
-              <ChevronDown size={16} strokeWidth={2.5} className="rotate-90" />
-              <span className="text-sm font-semibold hidden sm:inline">Packages</span>
-            </button>
-            <div className="w-px h-5 bg-gray-200 flex-shrink-0" />
-            <div className="min-w-0">
-              <h1 className="text-2xl font-black text-[#0D2240] leading-tight">Your Utah Ski Itinerary</h1>
-              <p className="text-[#8A9BB0] text-sm truncate">
-                {itinerary.length} days · {skiDays} ski days · {uniqueResorts.map(r => r.name.replace(" Ski Area","").replace(" Mountain","").replace(" Resort","")).join(", ")}
-              </p>
-            </div>
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => router.push("/book")}
-            className="bg-[#0D2240] text-white px-6 py-3 rounded-2xl font-bold text-sm hover:bg-[#1B6BB0] shadow-lg transition-colors hidden sm:flex items-center gap-2 flex-shrink-0"
-          >
-            Book This Trip
-            <ChevronDown size={14} className="rotate-[-90deg]" />
-          </motion.button>
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-2xl font-black text-[#0D2240] leading-tight">Your Utah Ski Itinerary</h1>
+          <p className="text-[#8A9BB0] text-sm truncate">
+            {itinerary.length} days · {skiDays} ski days · {uniqueResorts.map(r => r.name.replace(" Ski Area","").replace(" Mountain","").replace(" Resort","")).join(", ")}
+          </p>
         </div>
       </div>
 
@@ -617,14 +596,24 @@ export default function ItineraryPage() {
         })}
       </div>
 
-      {/* Mobile book CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 sm:hidden">
-        <button
-          onClick={() => router.push("/book")}
-          className="w-full bg-[#0D2240] text-white py-4 rounded-2xl font-bold text-lg hover:bg-[#1B6BB0] transition-colors"
-        >
-          Book This Trip
-        </button>
+      {/* Bottom nav */}
+      <div className="max-w-3xl mx-auto px-6 pb-10 pt-2">
+        <div className="flex gap-3">
+          <button
+            onClick={() => router.push("/plan/packages")}
+            className="flex items-center gap-2 px-6 py-4 rounded-2xl font-semibold text-[#3D5066] bg-white border border-[#DDDDDD] hover:bg-gray-50 transition-colors"
+          >
+            <ChevronDown size={16} strokeWidth={2.5} className="rotate-90" />
+            Back to packages
+          </button>
+          <button
+            onClick={() => router.push("/book")}
+            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-lg bg-[#0D2240] text-white hover:bg-[#1B6BB0] shadow-lg active:scale-[0.98] transition-all"
+          >
+            Book This Trip
+            <ChevronDown size={16} strokeWidth={2.5} className="rotate-[-90deg]" />
+          </button>
+        </div>
       </div>
 
       {/* Floating concierge button */}
