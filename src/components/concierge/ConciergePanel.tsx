@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, Sparkles, Check, ChevronRight, Hotel, Plane, Star, Map } from "lucide-react";
+import { X, Send, Sparkles, Check, ChevronRight, Hotel, Plane, Star, Map, CalendarOff, CalendarCheck, Utensils, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -47,6 +47,11 @@ function ActionCard({
     highlight_package: <Star size={14} strokeWidth={2} />,
     update_day_note: <Sparkles size={14} strokeWidth={2} />,
     swap_day_resort: <Map size={14} strokeWidth={2} />,
+    set_day_type: (action.input.type === "rest")
+      ? <CalendarOff size={14} strokeWidth={2} />
+      : <CalendarCheck size={14} strokeWidth={2} />,
+    update_meal: <Utensils size={14} strokeWidth={2} />,
+    add_day_activity: <Plus size={14} strokeWidth={2} />,
   };
 
   const labels: Record<string, (input: Record<string, unknown>) => string> = {
@@ -55,6 +60,11 @@ function ActionCard({
     highlight_package: (i) => `Focus on ${i.packageId === "pkg-best" ? "Best Overall" : i.packageId === "pkg-value" ? "Best Value" : "Most Adventurous"}`,
     update_day_note: (i) => `Add tip to Day ${(i.dayIndex as number) + 1}`,
     swap_day_resort: (i) => `Switch Day ${(i.dayIndex as number) + 1} to ${i.resortName}`,
+    set_day_type: (i) => i.type === "rest"
+      ? `Remove skiing from Day ${(i.dayIndex as number) + 1}`
+      : `Add skiing to Day ${(i.dayIndex as number) + 1} at ${i.resortName ?? "resort"}`,
+    update_meal: (i) => `Update ${i.mealType} on Day ${(i.dayIndex as number) + 1}`,
+    add_day_activity: (i) => `Add activity to Day ${(i.dayIndex as number) + 1}`,
   };
 
   const label = labels[action.tool]?.(action.input) ?? action.tool;
@@ -296,23 +306,13 @@ export default function ConciergePanel({
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/20 z-40"
-          />
-
-          {/* Panel */}
+          /* Panel — no backdrop, sits beside the content */
           <motion.div
             initial={{ x: "100%", opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: "100%", opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-2xl z-50 flex flex-col"
+            className="fixed right-4 top-4 bottom-4 w-full max-w-sm bg-white shadow-2xl z-40 flex flex-col rounded-2xl overflow-hidden border border-[#EBEBEB]"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-[#EBEBEB]">
@@ -386,7 +386,7 @@ export default function ConciergePanel({
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
                   placeholder="Ask about resorts, hotels, flights…"
-                  className="flex-1 bg-transparent text-sm text-[#222222] placeholder:text-[#AAAAAA] outline-none"
+                  className="flex-1 bg-transparent text-sm text-[#222222] placeholder:text-[#AAAAAA] outline-none focus:outline-none ring-0 focus:ring-0"
                   disabled={isLoading}
                 />
                 <button
@@ -404,7 +404,6 @@ export default function ConciergePanel({
               </div>
             </div>
           </motion.div>
-        </>
       )}
     </AnimatePresence>
   );

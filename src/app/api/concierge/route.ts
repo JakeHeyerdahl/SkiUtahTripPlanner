@@ -70,6 +70,49 @@ const ITINERARY_TOOLS: Anthropic.Tool[] = [
       required: ["dayIndex", "resortId", "resortName", "reason"],
     },
   },
+  {
+    name: "set_day_type",
+    description: "Convert a ski day into a rest/free day, or convert a rest day into a ski day. Use this when the user wants to remove skiing from a day, take a break, or add a ski day.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        dayIndex: { type: "integer", description: "0-based index of the day to change" },
+        type: { type: "string", enum: ["rest", "ski"], description: "'rest' removes skiing from that day, 'ski' adds skiing" },
+        resortId: { type: "string", description: "Resort ID to ski at — required when type is 'ski'" },
+        resortName: { type: "string", description: "Human-readable resort name — required when type is 'ski'" },
+        reason: { type: "string", description: "Brief reason for the change" },
+      },
+      required: ["dayIndex", "type", "reason"],
+    },
+  },
+  {
+    name: "update_meal",
+    description: "Replace a meal recommendation on a specific day with a different restaurant or option.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        dayIndex: { type: "integer", description: "0-based index of the day" },
+        mealType: { type: "string", enum: ["breakfast", "lunch", "dinner"], description: "Which meal to update" },
+        name: { type: "string", description: "Name of the restaurant or food option" },
+        type: { type: "string", description: "Style or type of dining (e.g. 'Fine Dining', 'On-Mountain', 'Café')" },
+        reason: { type: "string", description: "Why this meal is recommended" },
+      },
+      required: ["dayIndex", "mealType", "name", "type", "reason"],
+    },
+  },
+  {
+    name: "add_day_activity",
+    description: "Add an extra activity or logistical note to a specific day's plan.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        dayIndex: { type: "integer", description: "0-based index of the day" },
+        activity: { type: "string", description: "The activity or note to add to that day" },
+        reason: { type: "string", description: "Why this activity is recommended" },
+      },
+      required: ["dayIndex", "activity", "reason"],
+    },
+  },
 ];
 
 // ─── System prompts ───────────────────────────────────────────────────────────
@@ -83,7 +126,23 @@ ${tripContext}
 CURRENT ITINERARY:
 ${extraContext}
 
-Help the user understand and improve their day-by-day plans. Use tools to suggest specific changes. Keep responses concise (2-3 sentences max unless explaining a change).`;
+You can make the following changes using tools:
+- swap_day_resort: change which resort a ski day is at
+- set_day_type: convert a ski day to a rest/free day (type="rest"), or add skiing to a rest day (type="ski" + resortId)
+- update_day_note: add a personalized tip to any day
+- update_meal: replace breakfast, lunch, or dinner on any day with a specific restaurant
+- add_day_activity: add an extra activity or note to a day's plan
+
+CRITICAL — ALWAYS call multiple tools in a single response when the request has multiple parts:
+- If the user asks to remove skiing AND wants something to do instead, call BOTH set_day_type(rest) AND add_day_activity (or update_day_note) with a real suggestion in the same response.
+- If the user asks to change a resort AND update a meal, call both tools.
+- Never respond to a multi-part request with only one tool. Handle every part of the request with a tool call.
+- When converting a day to rest and no alternative is specified, proactively add 2-3 activity suggestions using add_day_activity calls.
+
+When the user asks to remove a ski day — use set_day_type(rest) AND add_day_activity with a compelling non-ski alternative (spa, snowshoe tour, village exploration, sleigh ride, etc.) based on the resort area.
+When the user asks to add a ski day — use set_day_type(ski) with a resortId from the eligible resorts list.
+Always call tools — never just describe what could be done in text.
+Keep the text response to 1 sentence max — the action cards communicate the changes.`;
   }
   return `You are a friendly, expert ski trip concierge for Ski Utah helping a user choose the right package.
 
@@ -132,7 +191,7 @@ export async function POST(req: NextRequest) {
 
         const response = await client.messages.create({
           model: "claude-sonnet-4-6",
-          max_tokens: 1024,
+          max_tokens: 2048,
           system: systemPrompt,
           tools,
           messages: apiMessages,

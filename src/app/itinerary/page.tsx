@@ -7,7 +7,7 @@ import Image from "next/image";
 import {
   MapPin, MountainSnow, ChevronDown, Plane, Bus, Car,
   Package, Sun, Coffee, Wine, CalendarDays,
-  MessageCircle, CheckCircle, Check, GraduationCap, Sparkles, Snowflake,
+  MessageCircle, Check, GraduationCap, Sparkles, Snowflake,
 } from "lucide-react";
 import ConciergePanel, { ConciergeAction } from "@/components/concierge/ConciergePanel";
 import { useTripContext } from "@/context/TripContext";
@@ -319,11 +319,14 @@ export default function ItineraryPage() {
   const { tripData } = useTripContext();
   const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set());
   const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
-  const [conciergeOpen, setConciergeOpen] = useState(false);
+  const [conciergeOpen, setConciergeOpen] = useState(true);
   const [appliedActions, setAppliedActions] = useState<Set<string>>(new Set());
-  // Per-day concierge notes and resort overrides
+  // Per-day concierge overrides (all keyed by dayIndex, 0-based)
   const [dayNotes, setDayNotes] = useState<Record<number, string>>({});
   const [dayResortOverrides, setDayResortOverrides] = useState<Record<number, { resortId: string; resortName: string }>>({});
+  const [dayTypeOverrides, setDayTypeOverrides] = useState<Record<number, "rest" | "ski">>({});
+  const [mealOverrides, setMealOverrides] = useState<Record<string, { name: string; type: string }>>({});
+  const [extraActivities, setExtraActivities] = useState<Record<number, string[]>>({});
 
   // Generate packages from wizard data (or fallback demo)
   const packages = generateTripPackages(tripData.passType ? tripData : {
@@ -426,13 +429,32 @@ export default function ItineraryPage() {
       const { dayIndex, resortId, resortName } = action.input as { dayIndex: number; resortId: string; resortName: string };
       setDayResortOverrides((prev) => ({ ...prev, [dayIndex]: { resortId, resortName } }));
       setExpandedDays(prev => new Set([...prev, dayIndex + 1]));
+    } else if (action.tool === "set_day_type") {
+      const { dayIndex, type, resortId, resortName } = action.input as { dayIndex: number; type: "rest" | "ski"; resortId?: string; resortName?: string };
+      setDayTypeOverrides((prev) => ({ ...prev, [dayIndex]: type }));
+      if (type === "ski" && resortId && resortName) {
+        setDayResortOverrides((prev) => ({ ...prev, [dayIndex]: { resortId, resortName } }));
+      }
+      if (type === "rest") {
+        // Clear any resort override for rest days
+        setDayResortOverrides((prev) => { const next = { ...prev }; delete next[dayIndex]; return next; });
+      }
+      setExpandedDays(prev => new Set([...prev, dayIndex + 1]));
+    } else if (action.tool === "update_meal") {
+      const { dayIndex, mealType, name, type } = action.input as { dayIndex: number; mealType: string; name: string; type: string };
+      setMealOverrides((prev) => ({ ...prev, [`${dayIndex}-${mealType}`]: { name, type } }));
+      setExpandedDays(prev => new Set([...prev, dayIndex + 1]));
+    } else if (action.tool === "add_day_activity") {
+      const { dayIndex, activity } = action.input as { dayIndex: number; activity: string };
+      setExtraActivities((prev) => ({ ...prev, [dayIndex]: [...(prev[dayIndex] ?? []), activity] }));
+      setExpandedDays(prev => new Set([...prev, dayIndex + 1]));
     }
   }
 
   return (
     <div className="min-h-screen bg-[#F4F6F8]">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-20 px-6 py-5">
+      <div className="bg-white border-b border-gray-100 px-6 py-5">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-2xl font-black text-[#0D2240] leading-tight">Your Utah Ski Itinerary</h1>
           <p className="text-[#8A9BB0] text-sm truncate">
@@ -465,11 +487,22 @@ export default function ItineraryPage() {
       <div className="px-6 pb-24 max-w-3xl mx-auto space-y-3">
         {itinerary.map((day, i) => {
           const isExpanded = expandedDays.has(day.day);
-          const dayNote = dayNotes[day.day - 1];
-          const resortOverride = dayResortOverrides[day.day - 1];
-          const effectiveResort = resortOverride
-            ? (filteredPkg.eligibleResorts.find(r => r.id === resortOverride.resortId) ?? day.resort)
-            : day.resort;
+          const dayIndex = day.day - 1;
+          const dayNote = dayNotes[dayIndex];
+          const resortOverride = dayResortOverrides[dayIndex];
+          const typeOverride = dayTypeOverrides[dayIndex];
+
+          // Effective ski status — typeOverride wins, then original
+          const effectiveIsSkiDay = typeOverride === "rest" ? false
+            : typeOverride === "ski" ? true
+            : day.isSkiDay;
+
+          // Effective resort
+          const effectiveResort = typeOverride === "rest" ? null
+            : resortOverride
+              ? (filteredPkg.eligibleResorts.find(r => r.id === resortOverride.resortId) ?? day.resort)
+              : day.resort;
+
           const color = effectiveResort ? resortColor(effectiveResort.id) : "#8A9BB0";
 
           return (
@@ -500,10 +533,13 @@ export default function ItineraryPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-bold text-[#0D2240] text-sm">{day.dateStr}</p>
-                    {day.isSkiDay && (
+                    {effectiveIsSkiDay && (
                       <span className="text-[10px] font-black px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: color }}>
                         SKI DAY
                       </span>
+                    )}
+                    {typeOverride === "rest" && !day.isArrival && !day.isDeparture && (
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#8A9BB0] text-white">REST DAY</span>
                     )}
                     {day.isArrival && (
                       <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#1B6BB0] text-white">ARRIVE</span>
@@ -515,7 +551,7 @@ export default function ItineraryPage() {
                   <p className="text-[#8A9BB0] text-xs truncate">
                     {effectiveResort
                       ? effectiveResort.name.replace(" Ski Area","").replace(" Mountain","").replace(" Resort","")
-                      : day.isArrival ? "Arrival day" : day.isDeparture ? "Departure day" : "Rest day"
+                      : day.isArrival ? "Arrival day" : day.isDeparture ? "Departure day" : typeOverride === "rest" ? "Free day" : "Rest day"
                     } · {day.breakfast.name} → {day.dinner.name}
                   </p>
                 </div>
@@ -583,7 +619,7 @@ export default function ItineraryPage() {
                       )}
 
                       {/* ── Ski lesson add-on ── */}
-                      {day.isSkiDay && day.day === firstSkiDayNum && hasBeginners && (() => {
+                      {effectiveIsSkiDay && day.day === firstSkiDayNum && hasBeginners && (() => {
                         const key = `${day.day}-ski-lesson`;
                         const active = selectedAddons.has(key);
                         return (
@@ -624,7 +660,7 @@ export default function ItineraryPage() {
                       })()}
 
                       {/* ── Non-skier activities add-ons ── */}
-                      {day.isSkiDay && hasChillers && (() => {
+                      {effectiveIsSkiDay && hasChillers && (() => {
                         const chillAddons = getChillAddonsForDay(day.day);
                         return (
                           <div className="rounded-2xl border-2 border-[#6B2FA0] overflow-hidden">
@@ -691,31 +727,29 @@ export default function ItineraryPage() {
                       {/* Activities (with selected add-ons injected) */}
                       {(() => {
                         const addonActivities: string[] = [];
-                        if (day.isSkiDay && day.day === firstSkiDayNum && hasBeginners && selectedAddons.has(`${day.day}-ski-lesson`)) {
+                        if (effectiveIsSkiDay && day.day === firstSkiDayNum && hasBeginners && selectedAddons.has(`${day.day}-ski-lesson`)) {
                           addonActivities.push(`Group Ski Lesson — 2-hr beginner lesson with a certified instructor (${SKI_LESSON_ADDON.price})`);
                         }
                         getChillAddonsForDay(day.day).forEach(addon => {
-                          if (day.isSkiDay && hasChillers && selectedAddons.has(`${day.day}-${addon.id}`)) {
+                          if (effectiveIsSkiDay && hasChillers && selectedAddons.has(`${day.day}-${addon.id}`)) {
                             addonActivities.push(`${addon.label} — ${addon.description} (${addon.price})`);
                           }
                         });
-                        const allActivities = [...addonActivities, ...day.activities];
+                        const conciergeActivities = extraActivities[dayIndex] ?? [];
+                        // When day is overridden to rest, drop ski-specific base activities
+                        const baseActivities = typeOverride === "rest" ? [] : day.activities;
+                        const allActivities = [...addonActivities, ...conciergeActivities, ...baseActivities];
                         if (allActivities.length === 0) return null;
+                        const addedCount = addonActivities.length + conciergeActivities.length;
                         return (
                           <div className="pt-1">
-                            <p className="text-[10px] font-bold text-[#8A9BB0] uppercase tracking-wider mb-2">Activities & Logistics</p>
-                            <ul className="space-y-1.5">
+                            <p className="text-[10px] font-bold text-[#0D2240] uppercase tracking-wider mb-3">Activities & Logistics</p>
+                            <ul className="space-y-3">
                               {allActivities.map((act, j) => (
                                 <li key={j} className={cn(
-                                  "flex items-start gap-2 text-sm",
-                                  j < addonActivities.length ? "text-[#0D2240] font-semibold" : "text-[#3D5066]"
+                                  "text-sm leading-snug pl-1",
+                                  j < addedCount ? "text-[#0D2240] font-semibold" : "text-[#3D5066]"
                                 )}>
-                                  <CheckCircle
-                                    size={13}
-                                    className={cn("flex-shrink-0 mt-0.5", j < addonActivities.length ? "text-[#1B6BB0]" : "text-[#1B6BB0]")}
-                                    strokeWidth={2}
-                                    fill={j < addonActivities.length ? "#EBF5FF" : "none"}
-                                  />
                                   {act}
                                 </li>
                               ))}
@@ -736,7 +770,7 @@ export default function ItineraryPage() {
                       )}
 
                       {/* Hotel → Resort transport note on first ski day */}
-                      {day.isSkiDay && itinerary.filter(d => d.isSkiDay).indexOf(day) === 0 && (
+                      {effectiveIsSkiDay && itinerary.filter(d => d.isSkiDay).indexOf(day) === 0 && (
                         <div className="flex items-start gap-2.5 bg-[#F0F4F8] rounded-xl px-4 py-3">
                           {(() => {
                             const t = getTransport(selectedPkg.resort.id);
@@ -745,24 +779,27 @@ export default function ItineraryPage() {
                           })()}
                           <div>
                             <p className="text-sm font-semibold text-[#0D2240]">{getTransport(selectedPkg.resort.id).hotelToResort.label}</p>
-                            <p className="text-xs text-[#8A9BB0] leading-snug mt-0.5">{getTransport(selectedPkg.resort.id).hotelToResort.detail}</p>
+                            <p className="text-xs text-[#1B6BB0] leading-snug mt-0.5">{getTransport(selectedPkg.resort.id).hotelToResort.detail}</p>
                           </div>
                         </div>
                       )}
 
                       {/* Meals */}
                       <div>
-                        <p className="text-[10px] font-bold text-[#8A9BB0] uppercase tracking-wider mb-2">Meals</p>
+                        <p className="text-[10px] font-bold text-[#0D2240] uppercase tracking-wider mb-2">Meals</p>
                         <div className="space-y-2">
                           {[
-                            { label: "Breakfast", meal: day.breakfast, Icon: Sun },
-                            { label: "Lunch",     meal: day.lunch,     Icon: Coffee },
-                            { label: "Dinner",    meal: day.dinner,    Icon: Wine },
-                          ].map(({ label, meal, Icon }) => (
-                            <div key={label} className="flex items-center justify-between bg-[#F4F6F8] rounded-xl px-3 py-2.5">
+                            { label: "Breakfast", mealKey: "breakfast", meal: mealOverrides[`${dayIndex}-breakfast`] ?? day.breakfast, Icon: Sun },
+                            { label: "Lunch",     mealKey: "lunch",     meal: mealOverrides[`${dayIndex}-lunch`]     ?? day.lunch,      Icon: Coffee },
+                            { label: "Dinner",    mealKey: "dinner",    meal: mealOverrides[`${dayIndex}-dinner`]    ?? day.dinner,     Icon: Wine },
+                          ].map(({ label, mealKey, meal, Icon }) => (
+                            <div key={label} className={cn(
+                              "flex items-center justify-between rounded-xl px-3 py-2.5",
+                              mealOverrides[`${dayIndex}-${mealKey}`] ? "bg-[#EBF5FF] border border-[#1B6BB0]/20" : "bg-[#F4F6F8]"
+                            )}>
                               <div className="flex items-center gap-2">
-                                <Icon size={12} className="text-[#8A9BB0] flex-shrink-0" strokeWidth={2} />
-                                <span className="text-xs font-semibold text-[#8A9BB0]">{label}</span>
+                                <Icon size={12} className="text-[#1B6BB0] flex-shrink-0" strokeWidth={2} />
+                                <span className="text-xs font-semibold text-[#0D2240]">{label}</span>
                               </div>
                               <div className="text-right">
                                 <p className="text-xs font-bold text-[#0D2240]">{meal.name}</p>
