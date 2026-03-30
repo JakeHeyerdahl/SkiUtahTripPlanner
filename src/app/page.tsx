@@ -107,13 +107,13 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             className="mb-14 text-center"
           >
-            <span className="text-xs font-semibold text-[#717171] uppercase tracking-widest">
+            <span className="text-xs font-semibold text-[#3D5066] uppercase tracking-widest">
               How it works
             </span>
             <h2 className="text-4xl font-bold text-[#1A1A1A] tracking-tight mt-2">
               Your trip in 4 simple steps
             </h2>
-            <p className="text-[#717171] mt-3 text-base max-w-md mx-auto">
+            <p className="text-[#3D5066] mt-3 text-base max-w-md mx-auto">
               The only planner built for Utah skiing — with pass compatibility,
               snow forecasts, and multi-resort itineraries.
             </p>
@@ -139,7 +139,7 @@ export default function LandingPage() {
                   <h3 className="text-[15px] font-bold text-[#1A1A1A] mb-1.5">
                     {step.title}
                   </h3>
-                  <p className="text-[13px] text-[#717171] leading-relaxed">
+                  <p className="text-[13px] text-[#3D5066] leading-relaxed">
                     {step.body}
                   </p>
                 </div>
@@ -160,7 +160,7 @@ export default function LandingPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <span className="text-xs font-semibold text-[#717171] uppercase tracking-widest">
+              <span className="text-xs font-semibold text-[#3D5066] uppercase tracking-widest">
                 What's included
               </span>
               <h2 className="text-4xl font-bold text-[#1A1A1A] tracking-tight mt-2 mb-4">
@@ -168,7 +168,7 @@ export default function LandingPage() {
                 <br />
                 the perfect trip.
               </h2>
-              <p className="text-[#717171] text-base leading-relaxed mb-8">
+              <p className="text-[#3D5066] text-base leading-relaxed mb-8">
                 Your final plan is a complete, ready-to-book package — not just
                 resort suggestions. We handle every detail so you can focus on
                 the mountain.

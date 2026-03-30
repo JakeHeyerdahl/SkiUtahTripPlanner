@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { Calendar, ChevronLeft, ArrowRight } from "lucide-react";
 import { useTripContext, PassType } from "@/context/TripContext";
 import { cn } from "@/lib/utils";
@@ -15,7 +16,7 @@ interface PassOption {
   bgColor: string;
   borderColor: string;
   blackoutNote: string;
-  logo: string;
+  logoSrc: string;
 }
 
 const PASSES: PassOption[] = [
@@ -29,7 +30,7 @@ const PASSES: PassOption[] = [
     bgColor: "bg-amber-50",
     borderColor: "border-amber-400",
     blackoutNote: "No blackouts at Utah resorts",
-    logo: "IKON",
+    logoSrc: "/IKON-PASS.png",
   },
   {
     value: "ikon-base",
@@ -41,7 +42,7 @@ const PASSES: PassOption[] = [
     bgColor: "bg-amber-50",
     borderColor: "border-amber-300",
     blackoutNote: "Blackouts: Dec 26–Jan 3, MLK & Presidents' weekends. Note: No Alta or Deer Valley access.",
-    logo: "IKON BASE",
+    logoSrc: "/IKON-PASS.png",
   },
   {
     value: "epic",
@@ -53,7 +54,7 @@ const PASSES: PassOption[] = [
     bgColor: "bg-orange-50",
     borderColor: "border-orange-400",
     blackoutNote: "No blackouts",
-    logo: "EPIC",
+    logoSrc: "/epic-pass.png",
   },
   {
     value: "epic-local",
@@ -65,7 +66,7 @@ const PASSES: PassOption[] = [
     bgColor: "bg-orange-50",
     borderColor: "border-orange-300",
     blackoutNote: "Blackouts: Dec 27–31, Jan 17–18, Feb 14–16, 2026",
-    logo: "EPIC LOCAL",
+    logoSrc: "/epic-pass.png",
   },
   {
     value: "mountain-collective",
@@ -77,7 +78,7 @@ const PASSES: PassOption[] = [
     bgColor: "bg-green-50",
     borderColor: "border-green-400",
     blackoutNote: "No blackout dates",
-    logo: "MTN COLLECTIVE",
+    logoSrc: "/MountainCollective-pass.webp",
   },
   {
     value: "indy",
@@ -89,7 +90,7 @@ const PASSES: PassOption[] = [
     bgColor: "bg-purple-50",
     borderColor: "border-purple-400",
     blackoutNote: "Blackouts on peak dates (Indy+ Pass eliminates blackouts)",
-    logo: "INDY",
+    logoSrc: "/indy-pass.png",
   },
 ];
 
@@ -113,7 +114,7 @@ export default function PassStep() {
           <h1 className="text-4xl font-black text-[#0D2240] leading-tight mb-2">
             What pass are<br />you riding with?
           </h1>
-          <p className="text-[#8A9BB0] text-base mb-8">
+          <p className="text-[#3D5066] text-base mb-8">
             Your pass determines which Utah resorts are in play — and we&apos;ll flag blackout dates automatically.
           </p>
         </motion.div>
@@ -141,17 +142,20 @@ export default function PassStep() {
                     : "bg-[#F4F6F8] border-transparent hover:border-gray-200"
                 )}
               >
-                {/* Pass logo badge */}
-                <div
-                  className="inline-block px-2 py-0.5 rounded-md text-[10px] font-black text-white mb-2"
-                  style={{ backgroundColor: pass.color }}
-                >
-                  {pass.logo}
+                {/* Pass logo */}
+                <div className="relative h-8 w-full mb-2">
+                  <Image
+                    src={pass.logoSrc}
+                    alt={pass.name}
+                    fill
+                    className="object-contain object-left"
+                    sizes="160px"
+                  />
                 </div>
                 <p className={cn("font-bold text-sm mb-0.5", isSelected ? "text-[#0D2240]" : "text-[#3D5066]")}>
                   {pass.name}
                 </p>
-                <p className="text-[10px] text-[#8A9BB0] leading-tight">{pass.tagline}</p>
+                <p className="text-[10px] text-[#3D5066] leading-tight">{pass.tagline}</p>
 
                 {isSelected && (
                   <motion.div

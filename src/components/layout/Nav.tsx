@@ -60,7 +60,7 @@ export default function Nav() {
             className={`text-[11px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full border transition-colors hidden sm:inline ${
               isTransparent
                 ? "text-white/70 border-white/30"
-                : "text-[#717171] border-[#DDDDDD]"
+                : "text-[#3D5066] border-[#DDDDDD]"
             }`}
           >
             Trip Planner
@@ -78,7 +78,7 @@ export default function Nav() {
                   ? "text-white/80 hover:text-white hover:bg-white/10"
                   : pathname === link.href
                   ? "text-[#0D2240] bg-[#F7F7F7]"
-                  : "text-[#717171] hover:text-[#222222] hover:bg-[#F7F7F7]"
+                  : "text-[#3D5066] hover:text-[#222222] hover:bg-[#F7F7F7]"
               }`}
             >
               {link.label}

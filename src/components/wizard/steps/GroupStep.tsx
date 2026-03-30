@@ -5,12 +5,40 @@ import { Backpack, ShoppingBag, ChevronLeft, ArrowRight, Package, MountainSnow, 
 import { useTripContext, GroupMember, SkillLevel, ActivityMode } from "@/context/TripContext";
 import { cn } from "@/lib/utils";
 
-const SKILL_LEVELS: { value: SkillLevel; label: string; color: string; dot: string }[] = [
-  { value: "beginner",     label: "Beginner",     color: "bg-green-50 border-green-400 text-green-800",    dot: "bg-green-500"  },
-  { value: "intermediate", label: "Intermediate", color: "bg-blue-50 border-blue-400 text-blue-800",       dot: "bg-blue-600"   },
-  { value: "advanced",     label: "Advanced",     color: "bg-slate-50 border-slate-500 text-slate-800",    dot: "bg-slate-700"  },
-  { value: "expert",       label: "Expert",       color: "bg-purple-50 border-purple-500 text-purple-900", dot: "bg-purple-700" },
+const SKILL_LEVELS: { value: SkillLevel; label: string; color: string }[] = [
+  { value: "beginner",     label: "Beginner",     color: "bg-green-50 border-green-500 text-green-900"   },
+  { value: "intermediate", label: "Intermediate", color: "bg-blue-50 border-blue-600 text-blue-900"      },
+  { value: "advanced",     label: "Advanced",     color: "bg-gray-900/5 border-gray-800 text-gray-900"   },
+  { value: "expert",       label: "Expert",       color: "bg-gray-900/5 border-gray-900 text-gray-900"   },
 ];
+
+function SkiSymbol({ level, active }: { level: SkillLevel; active: boolean }) {
+  const grey = "bg-gray-200";
+  if (level === "beginner") {
+    return <span className={cn("w-3 h-3 rounded-full flex-shrink-0 inline-block", active ? "bg-[#1A6B1A]" : grey)} />;
+  }
+  if (level === "intermediate") {
+    return <span className={cn("w-3 h-3 flex-shrink-0 inline-block", active ? "bg-[#1B4FB0]" : grey)} />;
+  }
+  if (level === "advanced") {
+    return (
+      <svg width="12" height="12" viewBox="0 0 12 12" className="flex-shrink-0 inline-block">
+        <polygon points="6,0 12,6 6,12 0,6" fill={active ? "#111111" : "#CCCCCC"} />
+      </svg>
+    );
+  }
+  // expert — double black diamond
+  return (
+    <span className="flex gap-0.5 flex-shrink-0 items-center">
+      <svg width="10" height="10" viewBox="0 0 12 12">
+        <polygon points="6,0 12,6 6,12 0,6" fill={active ? "#111111" : "#CCCCCC"} />
+      </svg>
+      <svg width="10" height="10" viewBox="0 0 12 12">
+        <polygon points="6,0 12,6 6,12 0,6" fill={active ? "#111111" : "#CCCCCC"} />
+      </svg>
+    </span>
+  );
+}
 
 const ACTIVITIES: { value: ActivityMode; label: string; icon: React.ElementType }[] = [
   { value: "skiing",       label: "Skiing",       icon: MountainSnow },
@@ -54,7 +82,7 @@ export default function GroupStep() {
           <h1 className="text-4xl font-black text-[#0D2240] leading-tight mb-2">
             Who&apos;s making<br />the trip?
           </h1>
-          <p className="text-[#8A9BB0] text-base mb-8">
+          <p className="text-[#3D5066] text-base mb-8">
             Tell us about everyone so we can find the perfect resort match.
           </p>
         </motion.div>
@@ -68,7 +96,7 @@ export default function GroupStep() {
         >
           <div>
             <p className="font-bold text-[#0D2240] text-lg">Group Size</p>
-            <p className="text-[#8A9BB0] text-sm">
+            <p className="text-[#3D5066] text-sm">
               {onSnowCount} on snow · {members.length - onSnowCount} just chillin
             </p>
           </div>
@@ -110,7 +138,7 @@ export default function GroupStep() {
                           ? value === "chilling"
                             ? "bg-[#8A9BB0] text-white"
                             : "bg-[#0D2240] text-white"
-                          : "text-[#8A9BB0] hover:text-[#3D5066]"
+                          : "text-[#3D5066] hover:text-[#0D2240]"
                       )}
                     >
                       <Icon size={13} strokeWidth={2} />
@@ -136,10 +164,10 @@ export default function GroupStep() {
                             onClick={() => updateMember(member.id, { skillLevel: sl.value })}
                             className={cn(
                               "flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 text-xs font-semibold transition-all",
-                              member.skillLevel === sl.value ? sl.color : "bg-white border-gray-100 text-gray-400"
+                              member.skillLevel === sl.value ? sl.color : "bg-white border-gray-100 text-[#3D5066]"
                             )}
                           >
-                            <span className={cn("w-2 h-2 rounded-full", member.skillLevel === sl.value ? sl.dot : "bg-gray-200")} />
+                            <SkiSymbol level={sl.value} active={member.skillLevel === sl.value} />
                             {sl.label}
                           </button>
                         ))}
@@ -151,7 +179,7 @@ export default function GroupStep() {
                           onClick={() => updateMember(member.id, { needsRental: false })}
                           className={cn(
                             "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold transition-all",
-                            !member.needsRental ? "bg-[#0D2240] text-white" : "text-[#8A9BB0] hover:text-[#3D5066]"
+                            !member.needsRental ? "bg-[#0D2240] text-white" : "text-[#3D5066] hover:text-[#0D2240]"
                           )}
                         >
                           <Backpack size={13} strokeWidth={2} />
@@ -161,7 +189,7 @@ export default function GroupStep() {
                           onClick={() => updateMember(member.id, { needsRental: true })}
                           className={cn(
                             "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold transition-all",
-                            member.needsRental ? "bg-[#1B6BB0] text-white" : "text-[#8A9BB0] hover:text-[#3D5066]"
+                            member.needsRental ? "bg-[#1B6BB0] text-white" : "text-[#3D5066] hover:text-[#0D2240]"
                           )}
                         >
                           <ShoppingBag size={13} strokeWidth={2} />

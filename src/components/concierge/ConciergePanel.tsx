@@ -86,7 +86,7 @@ function ActionCard({
             <p className={cn("font-semibold leading-tight", applied ? "text-[#008A05]" : "text-[#0D2240]")}>
               {applied ? "Applied ✓" : label}
             </p>
-            {reason && <p className="text-xs text-[#717171] mt-0.5 leading-snug">{reason}</p>}
+            {reason && <p className="text-xs text-[#3D5066] mt-0.5 leading-snug">{reason}</p>}
           </div>
         </div>
         {!applied && (
@@ -322,7 +322,7 @@ export default function ConciergePanel({
                 </div>
                 <div>
                   <p className="font-bold text-[#0D2240] text-sm leading-tight">Ski Utah Concierge</p>
-                  <p className="text-xs text-[#8A9BB0]">
+                  <p className="text-xs text-[#3D5066]">
                     {context === "packages" ? "Helping with your packages" : "Helping with your itinerary"}
                   </p>
                 </div>
@@ -350,13 +350,13 @@ export default function ConciergePanel({
 
                   {/* Suggested prompts */}
                   <div className="space-y-2 pt-2">
-                    <p className="text-[10px] font-semibold text-[#8A9BB0] uppercase tracking-widest px-1">Try asking</p>
+                    <p className="text-[10px] font-semibold text-[#3D5066] uppercase tracking-widest px-1">Try asking</p>
                     <div className="flex flex-col gap-1.5">
                       {prompts.slice(0, 4).map((prompt) => (
                         <button
                           key={prompt}
                           onClick={() => sendMessage(prompt)}
-                          className="text-left px-3 py-2.5 rounded-xl bg-[#F4F6F8] hover:bg-[#EBF5FF] border border-transparent hover:border-[#1B6BB0]/20 text-sm text-[#3D5066] font-medium transition-all"
+                          className="text-left px-3 py-2.5 rounded-xl bg-[#F4F6F8] hover:bg-[#EBF5FF] border border-transparent hover:border-[#1B6BB0]/20 text-sm text-[#0D2240] font-medium transition-all"
                         >
                           {prompt}
                         </button>

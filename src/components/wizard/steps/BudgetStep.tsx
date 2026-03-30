@@ -55,7 +55,7 @@ export default function BudgetStep() {
           <h1 className="text-4xl font-black text-[#0D2240] leading-tight mb-2">
             What&apos;s your<br />total trip budget?
           </h1>
-          <p className="text-[#8A9BB0] text-base mb-10">
+          <p className="text-[#3D5066] text-base mb-10">
             Set a range for your whole group — flights, hotel, lift tickets, and activities.
           </p>
         </motion.div>
@@ -68,12 +68,12 @@ export default function BudgetStep() {
           className="flex items-center justify-center gap-4 mb-10"
         >
           <div className="text-center">
-            <p className="text-xs font-semibold text-[#8A9BB0] uppercase tracking-wider mb-1">Min</p>
+            <p className="text-xs font-semibold text-[#3D5066] uppercase tracking-wider mb-1">Min</p>
             <p className="text-3xl font-black text-[#0D2240]">{formatCurrency(budgetMin)}</p>
           </div>
-          <div className="text-[#8A9BB0] text-2xl font-light">—</div>
+          <div className="text-[#3D5066] text-2xl font-light">—</div>
           <div className="text-center">
-            <p className="text-xs font-semibold text-[#8A9BB0] uppercase tracking-wider mb-1">Max</p>
+            <p className="text-xs font-semibold text-[#3D5066] uppercase tracking-wider mb-1">Max</p>
             <p className="text-3xl font-black text-[#1B6BB0]">{formatCurrency(budgetMax)}</p>
           </div>
         </motion.div>
@@ -144,12 +144,12 @@ export default function BudgetStep() {
                 <tier.Icon
                   size={18}
                   strokeWidth={1.75}
-                  className={`mb-2 ${isActive ? "text-[#1B6BB0]" : "text-[#8A9BB0]"}`}
+                  className={`mb-2 ${isActive ? "text-[#1B6BB0]" : "text-[#3D5066]"}`}
                 />
                 <div className={`text-sm font-bold ${isActive ? "text-[#0D2240]" : "text-[#3D5066]"}`}>
                   {tier.label}
                 </div>
-                <div className="text-[10px] text-[#8A9BB0] mt-0.5">{tier.desc}</div>
+                <div className="text-[10px] text-[#3D5066] mt-0.5">{tier.desc}</div>
               </button>
             );
           })}

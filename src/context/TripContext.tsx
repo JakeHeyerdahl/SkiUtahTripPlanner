@@ -29,6 +29,7 @@ export interface TripData {
   tripDays: number;
   isAnytime: boolean;
   departureCity: string;
+  isDriving: boolean;
   // Step 2
   budgetMin: number;
   budgetMax: number;
@@ -58,6 +59,7 @@ const defaultTripData: TripData = {
   tripDays: 0,
   isAnytime: false,
   departureCity: "",
+  isDriving: false,
   budgetMin: 2000,
   budgetMax: 8000,
   groupMembers: [

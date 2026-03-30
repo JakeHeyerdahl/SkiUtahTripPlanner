@@ -457,7 +457,7 @@ export default function ItineraryPage() {
       <div className="bg-white border-b border-gray-100 px-6 py-5">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-2xl font-black text-[#0D2240] leading-tight">Your Utah Ski Itinerary</h1>
-          <p className="text-[#8A9BB0] text-sm truncate">
+          <p className="text-[#3D5066] text-sm truncate">
             {itinerary.length} days · {skiDays} ski days · {uniqueResorts.map(r => r.name.replace(" Ski Area","").replace(" Mountain","").replace(" Resort","")).join(", ")}
           </p>
         </div>
@@ -476,7 +476,7 @@ export default function ItineraryPage() {
               {r.name.replace(" Ski Area","").replace(" Mountain","").replace(" Resort","")}
             </span>
           ))}
-          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F4F6F8] border border-gray-200 text-[#8A9BB0] text-xs font-semibold">
+          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F4F6F8] border border-gray-200 text-[#3D5066] text-xs font-semibold">
             <CalendarDays size={11} strokeWidth={2} />
             Travel / Rest
           </span>
@@ -548,7 +548,7 @@ export default function ItineraryPage() {
                       <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#8A9BB0] text-white">DEPART</span>
                     )}
                   </div>
-                  <p className="text-[#8A9BB0] text-xs truncate">
+                  <p className="text-[#3D5066] text-xs truncate">
                     {effectiveResort
                       ? effectiveResort.name.replace(" Ski Area","").replace(" Mountain","").replace(" Resort","")
                       : day.isArrival ? "Arrival day" : day.isDeparture ? "Departure day" : typeOverride === "rest" ? "Free day" : "Rest day"
@@ -566,7 +566,7 @@ export default function ItineraryPage() {
                 <motion.div
                   animate={{ rotate: isExpanded ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
-                  className="text-[#8A9BB0] flex-shrink-0"
+                  className="text-[#3D5066] flex-shrink-0"
                 >
                   <ChevronDown size={16} strokeWidth={2} />
                 </motion.div>
@@ -643,7 +643,7 @@ export default function ItineraryPage() {
                                 <p className={cn("text-sm font-bold leading-tight", active ? "text-[#0D2240]" : "text-[#3D5066]")}>
                                   {SKI_LESSON_ADDON.label}
                                 </p>
-                                <p className="text-xs text-[#8A9BB0] leading-snug mt-0.5">{SKI_LESSON_ADDON.description}</p>
+                                <p className="text-xs text-[#3D5066] leading-snug mt-0.5">{SKI_LESSON_ADDON.description}</p>
                               </div>
                               <div className="flex items-center gap-2.5 flex-shrink-0">
                                 <span className={cn("text-sm font-black", active ? "text-[#1B6BB0]" : "text-[#3D5066]")}>{SKI_LESSON_ADDON.price}</span>
@@ -697,7 +697,7 @@ export default function ItineraryPage() {
                                     </div>
                                     <div className="flex-1">
                                       <p className={cn("text-sm font-bold leading-tight", active ? "text-[#3D1A6B]" : "text-[#3D5066]")}>{addon.label}</p>
-                                      <p className="text-xs text-[#8A9BB0] leading-snug mt-0.5">{addon.description}</p>
+                                      <p className="text-xs text-[#3D5066] leading-snug mt-0.5">{addon.description}</p>
                                     </div>
                                     <div className="flex items-center gap-2.5 flex-shrink-0">
                                       <span className={cn("text-sm font-black", active ? "text-[#6B2FA0]" : "text-[#3D5066]")}>{addon.price}</span>
@@ -803,7 +803,7 @@ export default function ItineraryPage() {
                               </div>
                               <div className="text-right">
                                 <p className="text-xs font-bold text-[#0D2240]">{meal.name}</p>
-                                {meal.type && <p className="text-[10px] text-[#8A9BB0]">{meal.type}</p>}
+                                {meal.type && <p className="text-[10px] text-[#3D5066]">{meal.type}</p>}
                               </div>
                             </div>
                           ))}

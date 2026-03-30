@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Snowflake, Check, ChevronLeft, ArrowRight, X, PlaneTakeoff } from "lucide-react";
+import { Snowflake, Check, ChevronLeft, ArrowRight, X, PlaneTakeoff, Car } from "lucide-react";
 import { useTripContext } from "@/context/TripContext";
 import { cn } from "@/lib/utils";
 
@@ -173,7 +173,8 @@ export default function DateStep() {
   }
 
   const calendarActive = tripDays > 0 && !tripData.isAnytime;
-  const canContinue = tripData.isAnytime || blockStarts.length > 0;
+  const hasTransport = tripData.isDriving || tripData.departureCity.includes("—");
+  const canContinue = hasTransport && (tripData.isAnytime || blockStarts.length > 0);
 
   return (
     <motion.div
@@ -190,16 +191,16 @@ export default function DateStep() {
           <h1 className="text-4xl font-black text-[#0D2240] leading-tight mb-2">
             When are you<br />hitting the slopes?
           </h1>
-          <p className="text-[#8A9BB0] text-base mb-8">
+          <p className="text-[#3D5066] text-base mb-8">
             Pick a trip length, then tap any date to add that window. Add as many options as you want.
           </p>
         </motion.div>
 
         {/* Flying from — airport autocomplete */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-6 relative" ref={airportRef}>
-          <label className="block text-sm font-semibold text-[#3D5066] mb-2">Flying from</label>
-          <div className="relative">
-            <PlaneTakeoff size={16} strokeWidth={2} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8A9BB0] pointer-events-none" />
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-3 relative" ref={airportRef}>
+          <label className="block text-sm font-semibold text-[#3D5066] mb-2">Getting there</label>
+          <div className={cn("relative transition-opacity", tripData.isDriving && "opacity-40 pointer-events-none")}>
+            <PlaneTakeoff size={16} strokeWidth={2} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#3D5066] pointer-events-none" />
             <input
               type="text"
               placeholder="City or airport code (e.g. LAX, Chicago...)"
@@ -215,7 +216,7 @@ export default function DateStep() {
             />
           </div>
           <AnimatePresence>
-            {showSuggestions && airportSuggestions.length > 0 && (
+            {!tripData.isDriving && showSuggestions && airportSuggestions.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -237,33 +238,98 @@ export default function DateStep() {
                     <span className="text-sm font-black text-[#0D2240] w-10 flex-shrink-0">{airport.code}</span>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-[#0D2240] truncate">{airport.city}</p>
-                      <p className="text-xs text-[#8A9BB0] truncate">{airport.name}</p>
+                      <p className="text-xs text-[#3D5066] truncate">{airport.name}</p>
                     </div>
                   </button>
                 ))}
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* I'm driving toggle */}
+          <button
+            onClick={() => {
+              const next = !tripData.isDriving;
+              updateTrip({ isDriving: next, departureCity: next ? "" : airportQuery });
+              if (next) setAirportQuery("");
+            }}
+            className={cn(
+              "mt-2 w-full py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all flex items-center gap-3",
+              tripData.isDriving
+                ? "border-[#1B6BB0] bg-[#1B6BB0]/5 text-[#0D2240]"
+                : "border-gray-100 bg-[#F4F6F8] text-[#3D5066] hover:border-gray-200"
+            )}
+          >
+            <Car size={16} strokeWidth={2} className={tripData.isDriving ? "text-[#1B6BB0]" : "text-[#3D5066]"} />
+            <span>I&apos;m driving there</span>
+            {tripData.isDriving && (
+              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="ml-auto">
+                <Check size={16} strokeWidth={2.5} className="text-[#1B6BB0]" />
+              </motion.div>
+            )}
+          </button>
         </motion.div>
 
-        {/* Anytime toggle */}
-        <motion.button
+        {/* Trip length picker */}
+        <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
+          className={cn("mb-4 transition-opacity", tripData.isAnytime && "opacity-40 pointer-events-none")}
+        >
+          <label className="block text-sm font-semibold text-[#3D5066] mb-3">
+            How many days is your trip?
+          </label>
+          <div className="flex items-center justify-between bg-[#F4F6F8] rounded-2xl p-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleTripDaysChange(tripDays - 1)}
+                disabled={tripDays <= 1}
+                className="w-10 h-10 rounded-full bg-white shadow-sm text-[#0D2240] font-bold text-xl flex items-center justify-center hover:shadow-md transition-shadow disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                −
+              </button>
+              <button
+                onClick={() => handleTripDaysChange(tripDays === 0 ? 1 : tripDays + 1)}
+                disabled={tripDays >= 14}
+                className="w-10 h-10 rounded-full bg-[#0D2240] text-white font-bold text-xl flex items-center justify-center hover:bg-[#1B6BB0] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                +
+              </button>
+            </div>
+            <div className="text-right">
+              {tripDays === 0 ? (
+                <span className="text-[#3D5066] text-lg font-semibold">Choose days</span>
+              ) : (
+                <span className="text-3xl font-black text-[#0D2240]">
+                  {tripDays}
+                  <span className="text-base font-semibold text-[#3D5066] ml-1">
+                    day{tripDays !== 1 ? "s" : ""} / {tripDays - 1} night{tripDays - 1 !== 1 ? "s" : ""}
+                  </span>
+                </span>
+              )}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Anytime toggle — alternative to picking specific days */}
+        <motion.button
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
           onClick={() => {
             updateTrip({ isAnytime: !tripData.isAnytime, dates: [], tripDays: 0 });
             setBlockStarts([]);
             setTripDays(0);
           }}
           className={cn(
-            "w-full mb-6 py-3.5 px-5 rounded-xl border-2 font-semibold text-base transition-all flex items-center gap-3",
+            "w-full mb-5 py-3.5 px-5 rounded-xl border-2 font-semibold text-base transition-all flex items-center gap-3",
             tripData.isAnytime
               ? "border-[#1B6BB0] bg-[#1B6BB0]/5 text-[#0D2240]"
-              : "border-gray-100 bg-[#F4F6F8] text-[#8A9BB0] hover:border-gray-200"
+              : "border-gray-100 bg-[#F4F6F8] text-[#3D5066] hover:border-gray-200"
           )}
         >
-          <Snowflake size={18} strokeWidth={2} className={tripData.isAnytime ? "text-[#1B6BB0]" : "text-[#8A9BB0]"} />
+          <Snowflake size={18} strokeWidth={2} className={tripData.isAnytime ? "text-[#1B6BB0]" : "text-[#3D5066]"} />
           <span>I&apos;m flexible — anytime this ski season</span>
           {tripData.isAnytime && (
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="ml-auto">
@@ -271,50 +337,6 @@ export default function DateStep() {
             </motion.div>
           )}
         </motion.button>
-
-        {/* Trip length picker */}
-        {!tripData.isAnytime && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mb-5"
-          >
-            <label className="block text-sm font-semibold text-[#3D5066] mb-3">
-              How many days is your trip?
-            </label>
-            <div className="flex items-center justify-between bg-[#F4F6F8] rounded-2xl p-4">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleTripDaysChange(tripDays - 1)}
-                  disabled={tripDays <= 1}
-                  className="w-10 h-10 rounded-full bg-white shadow-sm text-[#0D2240] font-bold text-xl flex items-center justify-center hover:shadow-md transition-shadow disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  −
-                </button>
-                <button
-                  onClick={() => handleTripDaysChange(tripDays === 0 ? 1 : tripDays + 1)}
-                  disabled={tripDays >= 14}
-                  className="w-10 h-10 rounded-full bg-[#0D2240] text-white font-bold text-xl flex items-center justify-center hover:bg-[#1B6BB0] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  +
-                </button>
-              </div>
-              <div className="text-right">
-                {tripDays === 0 ? (
-                  <span className="text-[#8A9BB0] text-lg font-semibold">Choose days</span>
-                ) : (
-                  <span className="text-3xl font-black text-[#0D2240]">
-                    {tripDays}
-                    <span className="text-base font-semibold text-[#8A9BB0] ml-1">
-                      day{tripDays !== 1 ? "s" : ""} / {tripDays - 1} night{tripDays - 1 !== 1 ? "s" : ""}
-                    </span>
-                  </span>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
 
         {/* Calendar */}
         {!tripData.isAnytime && (
@@ -340,7 +362,7 @@ export default function DateStep() {
                     "flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all",
                     activeMonthIdx === i
                       ? "bg-[#0D2240] text-white shadow-sm"
-                      : "text-[#8A9BB0] hover:text-[#3D5066]"
+                      : "text-[#3D5066] hover:text-[#0D2240]"
                   )}
                 >
                   {m}
@@ -355,7 +377,7 @@ export default function DateStep() {
             {/* Day headers */}
             <div className="grid grid-cols-7 mb-1">
               {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-                <div key={i} className="text-center text-[10px] font-semibold text-[#8A9BB0] py-1">{d}</div>
+                <div key={i} className="text-center text-[10px] font-semibold text-[#3D5066] py-1">{d}</div>
               ))}
             </div>
 
@@ -409,7 +431,7 @@ export default function DateStep() {
             )}
 
             {tripDays > 0 && blockStarts.length === 0 && (
-              <p className="mt-3 text-center text-xs text-[#8A9BB0]">
+              <p className="mt-3 text-center text-xs text-[#3D5066]">
                 Tap any date to add a {tripDays}-day window
               </p>
             )}
@@ -440,7 +462,7 @@ export default function DateStep() {
                       <span>{formatDateShort(start)} – {formatDateShort(end)}</span>
                       <button
                         onClick={() => removeBlock(start)}
-                        className="text-[#8A9BB0] hover:text-[#0D2240] transition-colors"
+                        className="text-[#3D5066] hover:text-[#0D2240] transition-colors"
                       >
                         <X size={12} strokeWidth={2.5} />
                       </button>

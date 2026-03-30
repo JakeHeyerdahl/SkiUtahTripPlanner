@@ -68,7 +68,7 @@ export default function FoodStep() {
           <h1 className="text-4xl font-black text-[#0D2240] leading-tight mb-2">
             How does your<br />group like to eat?
           </h1>
-          <p className="text-[#8A9BB0] text-base mb-8">
+          <p className="text-[#3D5066] text-base mb-8">
             We&apos;ll match your itinerary with restaurants your whole crew will love.
           </p>
         </motion.div>
@@ -96,13 +96,13 @@ export default function FoodStep() {
                   <ds.Icon
                     size={20}
                     strokeWidth={1.75}
-                    className={isSelected ? "text-[#1B6BB0]" : "text-[#8A9BB0]"}
+                    className={isSelected ? "text-[#1B6BB0]" : "text-[#3D5066]"}
                   />
                   <div>
                     <p className={cn("text-sm font-bold", isSelected ? "text-[#0D2240]" : "text-[#3D5066]")}>
                       {ds.label}
                     </p>
-                    <p className="text-[10px] text-[#8A9BB0]">{ds.desc}</p>
+                    <p className="text-[10px] text-[#3D5066]">{ds.desc}</p>
                   </div>
                   {isSelected && (
                     <motion.div

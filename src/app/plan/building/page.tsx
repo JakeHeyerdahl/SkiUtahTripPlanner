@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Calendar, Snowflake, Plane, Hotel, Star, Utensils, Mountain, Check } from "lucide-react";
+import { Calendar, Snowflake, Plane, Hotel, Star, Utensils, Mountain } from "lucide-react";
 
 const SEARCH_STEPS = [
   { Icon: Calendar,  text: "Checking resort availability for your dates..." },
@@ -125,62 +125,39 @@ export default function BuildingPage() {
         </motion.div>
 
         {/* Search steps */}
-        <div className="space-y-2 mb-12 min-h-[200px]">
-          <AnimatePresence>
-            {SEARCH_STEPS.map((step, i) => {
-              const isActive = i === activeStep;
-              const isDone = i < activeStep;
-              if (i > activeStep + 1) return null;
-              return (
+        <div className="space-y-3 mb-12 min-h-[200px] text-left">
+          {SEARCH_STEPS.map((step, i) => {
+            const isActive = i === activeStep;
+            const isDone = i < activeStep;
+            const isFuture = i > activeStep;
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: i * 0.08 }}
+                className="flex items-center gap-3"
+              >
+                {/* Spinning snowflake (active) or static (others) */}
                 <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -20, height: 0 }}
-                  animate={{
-                    opacity: isDone ? 0.45 : isActive ? 1 : 0,
-                    x: 0,
-                    height: "auto",
-                  }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="flex items-center gap-3 px-5 py-3 rounded-2xl"
-                  style={{
-                    background: isActive ? "rgba(91,184,245,0.12)" : "transparent",
-                    border: isActive ? "1px solid rgba(91,184,245,0.25)" : "1px solid transparent",
-                  }}
+                  animate={isActive ? { rotate: 360 } : { rotate: 0 }}
+                  transition={isActive ? { duration: 2, repeat: Infinity, ease: "linear" } : {}}
+                  className="flex-shrink-0"
                 >
-                  <step.Icon
-                    size={18}
+                  <Snowflake
+                    size={16}
                     strokeWidth={2}
-                    className={isActive ? "text-[#5BB8F5]" : "text-[#5BB8F5]/50"}
+                    className={isActive ? "text-white" : isDone ? "text-white/30" : "text-white/15"}
                   />
-                  <span className={`text-sm font-medium ${isActive ? "text-white" : "text-[#5BB8F5]/60"}`}>
-                    {step.text}
-                  </span>
-                  {isDone && (
-                    <motion.span
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="ml-auto text-[#5BB8F5]"
-                    >
-                      <Check size={14} strokeWidth={2.5} />
-                    </motion.span>
-                  )}
-                  {isActive && (
-                    <motion.div className="ml-auto flex gap-1">
-                      {[0, 1, 2].map((dot) => (
-                        <motion.div
-                          key={dot}
-                          className="w-1.5 h-1.5 rounded-full bg-[#5BB8F5]"
-                          animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
-                          transition={{ duration: 0.8, repeat: Infinity, delay: dot * 0.2 }}
-                        />
-                      ))}
-                    </motion.div>
-                  )}
                 </motion.div>
-              );
-            })}
-          </AnimatePresence>
+                <span className={`text-sm font-medium transition-colors ${
+                  isActive ? "text-white" : isDone ? "text-white/30" : "text-white/15"
+                }`}>
+                  {step.text}
+                </span>
+              </motion.div>
+            );
+          })}
         </div>
 
         {/* Progress bar */}

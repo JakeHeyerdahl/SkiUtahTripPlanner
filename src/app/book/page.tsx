@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Snowflake } from "lucide-react";
 
 const BOOKING_STEPS = [
   "Securing your hotel reservation...",
@@ -102,34 +103,32 @@ export default function BookPage() {
               <p className="text-[#5BB8F5]/70 text-sm mb-10">Hang tight, we&apos;re putting it all together</p>
 
               {/* Steps */}
-              <div className="space-y-2 mb-8">
+              <div className="space-y-3 mb-8 text-left">
                 {BOOKING_STEPS.map((step, i) => {
+                  const isActive = i === activeStep;
                   const isDone = i < activeStep;
-                  const isCurrent = i === activeStep;
                   return (
                     <motion.div
                       key={i}
-                      className="flex items-center gap-3 px-4 py-2.5 rounded-xl"
-                      style={{ background: isCurrent ? "rgba(91,184,245,0.1)" : "transparent" }}
-                      animate={{ opacity: i > activeStep ? 0.3 : 1 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: i * 0.08 }}
+                      className="flex items-center gap-3"
                     >
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        isDone ? "bg-[#5BB8F5]" : isCurrent ? "border-2 border-[#5BB8F5]" : "border border-white/20"
+                      <motion.div
+                        animate={isActive ? { rotate: 360 } : { rotate: 0 }}
+                        transition={isActive ? { duration: 2, repeat: Infinity, ease: "linear" } : {}}
+                        className="flex-shrink-0"
+                      >
+                        <Snowflake
+                          size={16}
+                          strokeWidth={2}
+                          className={isActive ? "text-white" : isDone ? "text-white/30" : "text-white/15"}
+                        />
+                      </motion.div>
+                      <span className={`text-sm font-medium transition-colors ${
+                        isActive ? "text-white" : isDone ? "text-white/30" : "text-white/15"
                       }`}>
-                        {isDone && (
-                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                            <path d="M2 5L4 7L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                          </svg>
-                        )}
-                        {isCurrent && (
-                          <motion.div
-                            className="w-2 h-2 rounded-full bg-[#5BB8F5]"
-                            animate={{ scale: [1, 1.4, 1] }}
-                            transition={{ duration: 0.6, repeat: Infinity }}
-                          />
-                        )}
-                      </div>
-                      <span className={`text-sm ${isCurrent ? "text-white font-semibold" : "text-[#5BB8F5]/60"}`}>
                         {step}
                       </span>
                     </motion.div>

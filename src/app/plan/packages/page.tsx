@@ -25,7 +25,7 @@ function SnowBadge({ score, inches }: { score: number; inches: number }) {
     <span
       className={cn(
         "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0",
-        isHigh ? "bg-[#EBF5FF] text-[#1B6BB0]" : "bg-[#F7F7F7] text-[#717171] border border-[#EBEBEB]"
+        isHigh ? "bg-[#EBF5FF] text-[#1B6BB0]" : "bg-[#F7F7F7] text-[#3D5066] border border-[#EBEBEB]"
       )}
     >
       <Snowflake size={11} strokeWidth={2.5} className="flex-shrink-0" />
@@ -43,7 +43,7 @@ function TerrainBar({ terrain }: { terrain: { green: number; blue: number; black
         <div className="bg-[#1B6BB0]" style={{ width: `${terrain.blue}%` }} />
         <div className="bg-[#222222]" style={{ width: `${terrain.black}%` }} />
       </div>
-      <div className="flex items-center gap-3 text-xs text-[#717171] whitespace-nowrap">
+      <div className="flex items-center gap-3 text-xs text-[#3D5066] whitespace-nowrap">
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-[#008A05] inline-block flex-shrink-0" />
           {terrain.green}%
@@ -99,17 +99,17 @@ function HotelCard({ hotel, selected, onClick }: { hotel: Lodging; selected: boo
       <div className="p-3">
         <p className="font-semibold text-[#222222] text-sm leading-snug mb-1 line-clamp-1">{hotel.name}</p>
         <div className="flex items-start gap-1 mb-2">
-          <MapPin size={10} className="text-[#717171] flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-[#717171] line-clamp-2 leading-tight">{hotel.resortProximity}</p>
+          <MapPin size={10} className="text-[#3D5066] flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-[#3D5066] line-clamp-2 leading-tight">{hotel.resortProximity}</p>
         </div>
         <div className="flex items-center gap-1.5 mb-2">
           <Star size={10} className="fill-[#222222] text-[#222222] flex-shrink-0" />
           <span className="text-xs font-semibold text-[#222222]">{hotel.rating}</span>
-          <span className="text-xs text-[#717171]">({hotel.reviewCount.toLocaleString()})</span>
+          <span className="text-xs text-[#3D5066]">({hotel.reviewCount.toLocaleString()})</span>
         </div>
         <p className="text-sm font-bold text-[#222222]">
           {formatCurrency(hotel.pricePerNight)}
-          <span className="font-normal text-[#717171] text-xs"> /&nbsp;night</span>
+          <span className="font-normal text-[#3D5066] text-xs"> /&nbsp;night</span>
         </p>
       </div>
     </button>
@@ -137,7 +137,7 @@ function FlightRow({ flight, selected, onClick }: { flight: FlightOption; select
 
       <div className="w-28 flex-shrink-0 min-w-0">
         <p className="text-sm font-semibold text-[#222222] leading-tight truncate">{flight.airline}</p>
-        <p className="text-xs text-[#717171]">{flight.flightNumber}</p>
+        <p className="text-xs text-[#3D5066]">{flight.flightNumber}</p>
       </div>
 
       {/* Outbound + Return leg */}
@@ -148,30 +148,30 @@ function FlightRow({ flight, selected, onClick }: { flight: FlightOption; select
           <span className="text-xs font-semibold text-[#222222] whitespace-nowrap">{flight.departureTime}</span>
           <div className="flex items-center gap-0.5 flex-1 min-w-0">
             <div className="h-px flex-1 bg-[#DDDDDD]" />
-            <span className="text-[9px] text-[#717171] px-0.5 whitespace-nowrap">{flight.duration}</span>
+            <span className="text-[9px] text-[#3D5066] px-0.5 whitespace-nowrap">{flight.duration}</span>
             <div className="h-px flex-1 bg-[#DDDDDD]" />
           </div>
           <span className="text-xs font-semibold text-[#222222] whitespace-nowrap">{flight.arrivalTime} SLC</span>
         </div>
         {/* Return */}
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-bold text-[#717171] w-16 flex-shrink-0">Return</span>
-          <span className="text-xs font-semibold text-[#717171] whitespace-nowrap">{flight.returnDepartureTime} SLC</span>
+          <span className="text-[10px] font-bold text-[#3D5066] w-16 flex-shrink-0">Return</span>
+          <span className="text-xs font-semibold text-[#3D5066] whitespace-nowrap">{flight.returnDepartureTime} SLC</span>
           <div className="flex items-center gap-0.5 flex-1 min-w-0">
             <div className="h-px flex-1 bg-[#EBEBEB]" />
-            <span className="text-[9px] text-[#AAAAAA] px-0.5 whitespace-nowrap">{flight.duration}</span>
+            <span className="text-[9px] text-[#3D5066] px-0.5 whitespace-nowrap">{flight.duration}</span>
             <div className="h-px flex-1 bg-[#EBEBEB]" />
           </div>
-          <span className="text-xs font-semibold text-[#717171] whitespace-nowrap">{flight.returnArrivalTime}</span>
+          <span className="text-xs font-semibold text-[#3D5066] whitespace-nowrap">{flight.returnArrivalTime}</span>
         </div>
       </div>
 
       <div className="flex flex-col items-end gap-1 flex-shrink-0">
-        <span className={cn("text-[10px] font-medium whitespace-nowrap", flight.stops === 0 ? "text-[#008A05]" : "text-[#717171]")}>
+        <span className={cn("text-[10px] font-medium whitespace-nowrap", flight.stops === 0 ? "text-[#008A05]" : "text-[#3D5066]")}>
           {flight.stops === 0 ? "Nonstop" : "1 stop"}
         </span>
         <p className="text-sm font-bold text-[#222222]">{formatCurrency(flight.pricePerPerson)}</p>
-        <p className="text-[10px] text-[#717171]">per person</p>
+        <p className="text-[10px] text-[#3D5066]">per person</p>
       </div>
 
       <div className={cn("w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all mt-0.5",
@@ -187,8 +187,8 @@ function FlightRow({ flight, selected, onClick }: { flight: FlightOption; select
 function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <div className="flex items-center gap-2 mb-4">
-      <span className="text-[#717171]">{icon}</span>
-      <span className="text-xs font-semibold text-[#717171] uppercase tracking-widest">{label}</span>
+      <span className="text-[#3D5066]">{icon}</span>
+      <span className="text-xs font-semibold text-[#3D5066] uppercase tracking-widest">{label}</span>
     </div>
   );
 }
@@ -242,7 +242,7 @@ function ResortCard({ resort, selected, onToggle }: { resort: import("@/types").
           ].map((s) => (
             <div key={s.label} className="px-1.5 first:pl-0 last:pr-0 text-center">
               <p className="text-xs font-bold text-[#222222]">{s.value}</p>
-              <p className="text-[9px] text-[#717171]">{s.label}</p>
+              <p className="text-[9px] text-[#3D5066]">{s.label}</p>
             </div>
           ))}
         </div>
@@ -319,7 +319,7 @@ function PackageCard({ pkg, groupSize, index, externalHotelId, externalFlightId,
               {pkg.label}
             </span>
             <h2 className="text-2xl font-bold text-[#222222] leading-tight">{pkg.tagline}</h2>
-            <p className="text-sm text-[#717171] mt-1 leading-snug">{pkg.marketingPoint}</p>
+            <p className="text-sm text-[#3D5066] mt-1 leading-snug">{pkg.marketingPoint}</p>
           </div>
           {/* Snow badge — flex-shrink-0 prevents wrap */}
           <SnowBadge score={pkg.snowLikelihood.score} inches={pkg.snowLikelihood.typicalInches} />
@@ -329,10 +329,10 @@ function PackageCard({ pkg, groupSize, index, externalHotelId, externalFlightId,
       {/* ── Resort cards ── */}
       <div className="px-6 py-5 border-b border-[#EBEBEB]">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[10px] font-semibold text-[#717171] uppercase tracking-widest">
+          <p className="text-[10px] font-semibold text-[#3D5066] uppercase tracking-widest">
             Resorts in your itinerary — deselect to remove
           </p>
-          <span className="text-[10px] font-semibold text-[#717171]">
+          <span className="text-[10px] font-semibold text-[#3D5066]">
             {selectedResortIds.size} of {pkg.eligibleResorts.length} selected
           </span>
         </div>
@@ -376,7 +376,7 @@ function PackageCard({ pkg, groupSize, index, externalHotelId, externalFlightId,
             />
           ))}
         </div>
-        <p className="text-xs text-[#717171] mt-3 flex items-center gap-1.5">
+        <p className="text-xs text-[#3D5066] mt-3 flex items-center gap-1.5">
           <Clock size={11} className="flex-shrink-0" />
           Round-trip prices shown · calculated per person
         </p>
@@ -386,7 +386,7 @@ function PackageCard({ pkg, groupSize, index, externalHotelId, externalFlightId,
       <div className="px-6 py-6">
         <div className="flex items-center justify-between gap-6 flex-wrap">
           <div>
-            <p className="text-xs text-[#717171] mb-1 font-medium uppercase tracking-wider">Estimated total</p>
+            <p className="text-xs text-[#3D5066] mb-1 font-medium uppercase tracking-wider">Estimated total</p>
             <div className="flex items-baseline gap-2 flex-wrap">
               <motion.span
                 key={liveTotal}
@@ -397,11 +397,11 @@ function PackageCard({ pkg, groupSize, index, externalHotelId, externalFlightId,
               >
                 {formatCurrency(liveTotal)}
               </motion.span>
-              <span className="text-sm text-[#717171]">· {pkg.nights} nights · group of {groupSize}</span>
+              <span className="text-sm text-[#3D5066]">· {pkg.nights} nights · group of {groupSize}</span>
             </div>
             <div className="flex items-center gap-4 mt-2 flex-wrap">
               {[`Hotel (${pkg.nights} nights)`, "Flights (round-trip)", "Pass covered"].map((item) => (
-                <span key={item} className="flex items-center gap-1 text-xs text-[#717171] whitespace-nowrap">
+                <span key={item} className="flex items-center gap-1 text-xs text-[#3D5066] whitespace-nowrap">
                   <Check size={10} className="text-[#008A05] flex-shrink-0" />
                   {item}
                 </span>
@@ -431,6 +431,7 @@ const DEMO_TRIP = {
   tripDays: 5,
   isAnytime: false,
   departureCity: "Los Angeles",
+  isDriving: false,
   budgetMin: 3000,
   budgetMax: 8000,
   groupMembers: [
@@ -507,7 +508,7 @@ function PackagesContent() {
               Your personalized packages
             </p>
             <h1 className="text-3xl font-bold text-[#222222] mb-1">3 ways to ski Utah</h1>
-            <p className="text-[#717171] text-sm">
+            <p className="text-[#3D5066] text-sm">
               Select your preferred hotel and flight — your total updates in real time.
               {data.departureCity && ` Flights from ${data.departureCity}.`}
             </p>
