@@ -56,9 +56,9 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white font-sans">
       {/* ── Hero ──────────────────────────────────────────────────────────────── */}
       <section className="relative h-screen flex flex-col overflow-hidden">
-        {/* Background from skiutah.com — no color filter */}
+        {/* Background photo */}
         <Image
-          src="https://www.skiutah.com/dist/images/home-hero.jpg"
+          src="/hero-background.jpg"
           alt="Utah ski slopes"
           fill
           className="object-cover object-center"
@@ -215,9 +215,9 @@ export default function LandingPage() {
 
       {/* ── Final CTA ─────────────────────────────────────────────────────────── */}
       <section className="relative py-28 px-20 overflow-hidden">
-        {/* Reuse hero image as background */}
+        {/* Background photo */}
         <Image
-          src="https://www.skiutah.com/dist/images/home-hero.jpg"
+          src="/hero-background.jpg"
           alt="Utah mountain skiing"
           fill
           className="object-cover object-top"
