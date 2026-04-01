@@ -13,6 +13,7 @@ export interface ConciergeAction {
 }
 
 interface Message {
+  id: string;
   role: "user" | "assistant";
   content: string;
   actions?: ConciergeAction[];
@@ -196,17 +197,17 @@ export default function ConciergePanel({
   async function sendMessage(text: string) {
     if (!text.trim() || isLoading) return;
 
-    const userMessage: Message = { role: "user", content: text };
+    const userMessage: Message = { id: Date.now().toString(), role: "user", content: text };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput("");
     setIsLoading(true);
 
     // Placeholder streaming message
-    const assistantMsgId = Date.now().toString();
+    const assistantMsgId = (Date.now() + 1).toString();
     setMessages((prev) => [
       ...prev,
-      { role: "assistant", content: "", isStreaming: true },
+      { id: assistantMsgId, role: "assistant", content: "", isStreaming: true },
     ]);
 
     try {
@@ -299,7 +300,6 @@ export default function ConciergePanel({
       });
     } finally {
       setIsLoading(false);
-      void assistantMsgId;
     }
   }
 
@@ -329,6 +329,7 @@ export default function ConciergePanel({
               </div>
               <button
                 onClick={onClose}
+                aria-label="Close concierge"
                 className="w-8 h-8 rounded-full bg-[#F4F6F8] flex items-center justify-center hover:bg-gray-200 transition-colors"
               >
                 <X size={14} strokeWidth={2.5} className="text-[#3D5066]" />
@@ -366,9 +367,9 @@ export default function ConciergePanel({
                 </div>
               )}
 
-              {messages.map((msg, i) => (
+              {messages.map((msg) => (
                 <MessageBubble
-                  key={i}
+                  key={msg.id}
                   message={msg}
                   appliedActionIds={appliedActionIds}
                   onAction={(action) => onAction?.(action)}

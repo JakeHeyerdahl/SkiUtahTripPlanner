@@ -29,20 +29,36 @@ Be warm, enthusiastic, and concise. Ask clarifying questions about group size, s
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = await req.json();
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
 
-    if (!messages || !Array.isArray(messages)) {
+    const { messages } = body as Record<string, unknown>;
+
+    if (!Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    }
+
+    const validMessages = messages.filter(
+      (m): m is { role: "user" | "assistant"; content: string } =>
+        m !== null &&
+        typeof m === "object" &&
+        (m.role === "user" || m.role === "assistant") &&
+        typeof m.content === "string"
+    );
+
+    if (validMessages.length === 0) {
+      return NextResponse.json({ error: "No valid messages" }, { status: 400 });
     }
 
     const response = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 1024,
       system: SYSTEM_PROMPT,
-      messages: messages.map((m: { role: string; content: string }) => ({
-        role: m.role as "user" | "assistant",
-        content: m.content,
-      })),
+      messages: validMessages,
     });
 
     const content = response.content[0];

@@ -24,6 +24,7 @@ export default function BookPage() {
   const [phase, setPhase] = useState<"booking" | "confirmed">("booking");
   const [activeStep, setActiveStep] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [confirmNum] = useState(() => Math.floor(Math.random() * 90000 + 10000));
 
   useEffect(() => {
     const stepDuration = 600;
@@ -222,7 +223,7 @@ export default function BookPage() {
                 >
                   <div className="flex justify-between">
                     <span className="text-white/60 text-sm">Confirmation #</span>
-                    <span className="text-white font-bold text-sm">SKI-2026-{Math.floor(Math.random() * 90000 + 10000)}</span>
+                    <span className="text-white font-bold text-sm">SKI-2026-{confirmNum}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/60 text-sm">Trip Dates</span>

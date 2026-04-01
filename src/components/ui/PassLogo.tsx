@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useState } from "react";
 import { PassType } from "@/context/TripContext";
 
 interface PassLogoProps {
@@ -80,22 +81,25 @@ export default function PassLogo({ passType, size = "md", className = "" }: Pass
     );
   }
 
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <div className={`inline-flex items-center ${className}`}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: "#222" }}>{config.alt}</span>
+      </div>
+    );
+  }
+
   return (
     <div className={`relative inline-flex items-center ${dims.container} ${className}`} style={{ width: dims.w }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={config.src}
         alt={config.alt}
-        className="h-full w-auto object-contain"
-        onError={(e) => {
-          // Fallback to text badge if image fails
-          const target = e.currentTarget;
-          target.style.display = "none";
-          const parent = target.parentElement;
-          if (parent) {
-            parent.innerHTML = `<span style="font-size:11px;font-weight:700;color:#222">${config.alt}</span>`;
-          }
-        }}
+        fill
+        className="object-contain object-left"
+        sizes={`${dims.w}px`}
+        onError={() => setFailed(true)}
       />
     </div>
   );

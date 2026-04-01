@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -56,11 +57,13 @@ export default function LandingPage() {
       {/* ── Hero ──────────────────────────────────────────────────────────────── */}
       <section className="relative h-screen flex flex-col overflow-hidden">
         {/* Background from skiutah.com — no color filter */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src="https://www.skiutah.com/dist/images/home-hero.jpg"
           alt="Utah ski slopes"
-          className="absolute inset-0 w-full h-full object-cover object-center"
+          fill
+          className="object-cover object-center"
+          priority
+          sizes="100vw"
         />
         {/* Subtle top gradient only — lets the photo breathe */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
@@ -213,11 +216,12 @@ export default function LandingPage() {
       {/* ── Final CTA ─────────────────────────────────────────────────────────── */}
       <section className="relative py-28 px-20 overflow-hidden">
         {/* Reuse hero image as background */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src="https://www.skiutah.com/dist/images/home-hero.jpg"
           alt="Utah mountain skiing"
-          className="absolute inset-0 w-full h-full object-cover object-top"
+          fill
+          className="object-cover object-top"
+          sizes="100vw"
         />
         <div className="absolute inset-0 bg-[#0D2240]/82" />
 

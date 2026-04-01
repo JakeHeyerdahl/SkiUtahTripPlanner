@@ -14,7 +14,6 @@ import { Lodging } from "@/types";
 import { FlightOption } from "@/data/flights";
 import { getResortImage, getHotelImage } from "@/data/images";
 import { formatCurrency, cn } from "@/lib/utils";
-import PassLogo from "@/components/ui/PassLogo";
 import { PassType } from "@/context/TripContext";
 import ConciergePanel, { ConciergeAction } from "@/components/concierge/ConciergePanel";
 

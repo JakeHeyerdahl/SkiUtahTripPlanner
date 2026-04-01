@@ -157,6 +157,43 @@ Help the user pick hotels, flights, and understand the resorts. Use tools to mak
 
 // ─── POST handler ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return new Response(JSON.stringify({ error: "API key not configured." }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const { messages, context, tripContext, packagesContext, itineraryContext } = body;
+
+  const rawMessages = Array.isArray(messages) ? messages : [];
+  const apiMessages: Anthropic.MessageParam[] = rawMessages.filter(
+    (m): m is { role: "user" | "assistant"; content: string } =>
+      m !== null &&
+      typeof m === "object" &&
+      (m.role === "user" || m.role === "assistant") &&
+      typeof m.content === "string"
+  );
+
+  const ctx = typeof context === "string" ? context : "packages";
+  const extraContext = ctx === "itinerary"
+    ? (typeof itineraryContext === "string" ? itineraryContext : "")
+    : (typeof packagesContext === "string" ? packagesContext : "");
+  const systemPrompt = buildSystemPrompt(ctx, typeof tripContext === "string" ? tripContext : "", extraContext);
+  const tools = ctx === "itinerary" ? ITINERARY_TOOLS : PACKAGES_TOOLS;
+  const client = new Anthropic({ apiKey });
+
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
@@ -166,29 +203,6 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        const body = await req.json();
-        const { messages, context, tripContext, packagesContext, itineraryContext } = body;
-
-        const extraContext = context === "itinerary" ? (itineraryContext ?? "") : (packagesContext ?? "");
-        const systemPrompt = buildSystemPrompt(context ?? "packages", tripContext ?? "", extraContext);
-        const tools = context === "itinerary" ? ITINERARY_TOOLS : PACKAGES_TOOLS;
-
-        // Init client inside handler so env vars are guaranteed loaded
-        const apiKey = process.env.ANTHROPIC_API_KEY;
-        if (!apiKey) {
-          send({ type: "error", message: "API key not configured." });
-          return;
-        }
-
-        const client = new Anthropic({ apiKey });
-
-        const apiMessages: Anthropic.MessageParam[] = (messages ?? []).map(
-          (m: { role: string; content: string }) => ({
-            role: m.role as "user" | "assistant",
-            content: m.content,
-          })
-        );
-
         const response = await client.messages.create({
           model: "claude-sonnet-4-6",
           max_tokens: 2048,
@@ -217,9 +231,8 @@ export async function POST(req: NextRequest) {
 
         send({ type: "done" });
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error("Concierge error:", message);
-        send({ type: "error", message: `Error: ${message}` });
+        console.error("Concierge error:", err);
+        send({ type: "error", message: "Something went wrong. Please try again." });
       } finally {
         controller.close();
       }
