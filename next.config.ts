@@ -8,7 +8,6 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "mountaincollective.com" },
       { protocol: "https", hostname: "www.indyskipass.com" },
       { protocol: "https", hostname: "plus.unsplash.com" },
-      { protocol: "https", hostname: "www.skiutah.com" },
     ],
   },
 };
